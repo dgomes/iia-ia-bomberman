@@ -44,7 +44,10 @@ class Game_server:
 
                 if data["cmd"] == "key" and self.current_player.ws == websocket:
                     logger.debug((self.current_player.name, data))
-                    self.game.keypress(data["key"][0])
+                    if len(data["key"]):
+                        self.game.keypress(data["key"][0])
+                    else:
+                        self.game.keypress("")
 
         except websockets.exceptions.ConnectionClosed as c:
             logger.info("Client disconnected")
@@ -63,6 +66,11 @@ class Game_server:
             try:
                 logger.info("Starting game for <{}>".format(self.current_player.name))
                 self.game.start(self.current_player.name)
+                if self.viewers:
+                    # need to update map in viewers #TODO avoid refresh message
+                    await asyncio.wait([client.send(json.dumps({"refresh": 1})) for client in self.viewers])
+                    await asyncio.wait([client.send(self.game.info()) for client in self.viewers])
+
                 if self.grading:
                     game_rec = dict(self.game_properties)
                     game_rec['player'] = self.current_player.name
