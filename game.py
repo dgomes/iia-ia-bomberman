@@ -145,14 +145,14 @@ class Game:
         try:
             if self._lastkeypress.isupper():
                 #Parse action
-                if self._lastkeypress == 'B' and len(self._bombs) == 0: #TODO powerups for >1 bomb
+                if self._lastkeypress == 'B' and len(self._bombs) < self._bomberman.powers.count(Powerups.Bombs) + 1:
                     self._bombs.append(Bomb(self._bomberman.pos, MIN_BOMB_RADIUS)) # must be dependent of powerup
             else:
                 #Update position
                 new_pos = self.map.calc_pos(self._bomberman.pos, self._lastkeypress) #don't bump into stones/walls
                 if new_pos not in [b.pos for b in self._bombs]: #don't pass over bombs
                     self._bomberman.pos = new_pos
-                for pos, _type in self._powerups:
+                for pos, _type in self._powerups: #consume powerups
                     if new_pos == pos:
                         self._bomberman.powerup(_type)
                         self._powerups.remove((pos, _type))
