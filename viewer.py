@@ -19,6 +19,7 @@ logger = logging.getLogger('Map')
 logger.setLevel(logging.DEBUG)
 
 BOMBERMAN = {'up': (0, 0), 'left': (0, 0), 'down': (0, 0), 'right': (0, 0)}
+ENEMIES = {'Balloom': (0, 240)}
 STONE = (48, 48)
 WALL = (64, 48)
 PASSAGE = (0, 64)
@@ -91,6 +92,7 @@ class Enemy(pygame.sprite.Sprite):
         self.x, self.y = (kw.pop("pos", ((kw.pop("x", 0), kw.pop("y", 0)))))
         self.index = kw.pop("index", 0)
         self.direction = "left"
+        self.name = "Balloom" #TODO multiple enemies
         self.rect = pygame.Rect((self.x, self.y) + CHAR_SIZE)
         self.image = pygame.Surface(CHAR_SIZE)
         self.image.blit(*self.sprite_pos((self.x, self.y)))
@@ -98,7 +100,7 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
    
     def sprite_pos(self, new_pos):
-        CROP = 22 
+        CROP = 16 
         x, y = new_pos 
 
         if x > self.x:
@@ -110,7 +112,7 @@ class Enemy(pygame.sprite.Sprite):
         if y < self.y:
             self.direction = "up"
 
-        #x, y = ENEMIES[self.index][self.direction] 
+        x, y = ENEMIES[self.name]
 
         return (SPRITES, (2,2), (x, y, x+CROP, y+CROP))
 
@@ -144,9 +146,9 @@ class Bomb(pygame.sprite.Sprite):
                 #It's me!
                 self.timeout = timeout
         if self.timeout == 0:
-            print("explode")
             self.exploded = True
             self.image.blit(SPRITES, (0,0), (*EXPLOSION['c'], *scale((1,1))))
+#TODO class WALL
 
 def clear_callback(surf, rect):
     """beneath everything there is a passage."""
@@ -193,6 +195,7 @@ async def main_loop(q):
 async def main_game():
     main_group = pygame.sprite.OrderedUpdates()
     bombs_group = pygame.sprite.OrderedUpdates()
+    enemies_group = pygame.sprite.OrderedUpdates()
 
     logging.info("Waiting for map information from server") 
     state = await q.get() #first state message includes map information
@@ -200,11 +203,14 @@ async def main_game():
     newgame_json = json.loads(state)
 
     GAME_SPEED = newgame_json["fps"]
-    mapa = Map(newgame_json['level'], newgame_json['size'], newgame_json['map'])
+    mapa = Map(level = newgame_json['level'], size = newgame_json['size'], mapa = newgame_json['map'])
     SCREEN = pygame.display.set_mode(scale(mapa.size))
    
     draw_background(mapa, SCREEN)
     main_group.add(BomberMan(pos=scale(mapa.bomberman_spawn)))
+
+    for enemy in newgame_json['enemies']:
+        enemies_group.add(Enemy(name=enemy['name'], pos=scale(enemy['pos'])))
     # for i in range(newgame_json["enemies"]):
     #     main_group.add(Enemy(pos=scale(mapa.ghost_spawn), images=images, index=i))
     
@@ -220,6 +226,7 @@ async def main_game():
  
         main_group.clear(SCREEN, clear_callback)
         bombs_group.clear(SCREEN, clear_callback)
+        enemies_group.clear(SCREEN, clear_callback)
         
         if "score" in state:
             if blit == 1:
@@ -229,6 +236,7 @@ async def main_game():
             draw_info(SCREEN, text.zfill(6), (0,0))
             text = str(state["player"]).rjust(32)
             draw_info(SCREEN, text, (4000,0))
+        
         if "bombs" in state:
             for bomb in bombs_group:
                 if bomb.exploded:
@@ -237,6 +245,11 @@ async def main_game():
                 pos, timeout = state["bombs"][-1]
                 bombs_group.add(Bomb(pos=scale(pos),timeout=timeout))
             bombs_group.update(state)
+        
+        enemies_group.empty()
+        if "enemies" in state:
+            for enemy in state['enemies']:
+                enemies_group.add(Enemy(name=enemy['name'], pos=scale(enemy['pos'])))
 
         # if "energy" in state:
         #     for x, y in state["energy"]:
@@ -247,6 +260,7 @@ async def main_game():
 
         main_group.draw(SCREEN)
         bombs_group.draw(SCREEN)
+        enemies_group.draw(SCREEN)
 
         #Highscores Board
         elapsed_time = (time.process_time() - start_time) * 100

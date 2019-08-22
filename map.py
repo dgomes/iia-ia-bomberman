@@ -16,12 +16,13 @@ class Tiles(IntEnum):
 
 
 class Map:
-    def __init__(self, level=1, size=(10, 4), mapa=None):
+    def __init__(self, level=1, enemies=0, size=(20, 20), mapa=None):
         self._level = level
         self._size = size
         self.hor_tiles = size[0]
         self.ver_tiles = size[1]
         self._walls = []
+        self._enemies_spawn = [] 
     
         if not mapa:
             logger.info("Generating a MAP")
@@ -35,19 +36,20 @@ class Map:
                             if random.randint(0,10) > 8:
                                 self.map[x][y] = Tiles.WALL
                                 self._walls.append((x, y))
+                            elif x > self.hor_tiles/10 and y > self.ver_tiles/10 and random.randint(0,10) > 8 and len(self._enemies_spawn) < enemies:
+                                self._enemies_spawn.append((x, y))
                     
             self.exit_door = random.choice(self._walls)
-            self.powerup = random.choice([w for w in self._walls if w != self.exit_door])
+            self.powerup = random.choice([w for w in self._walls if w != self.exit_door]) #hide powerups behind walls only
 
         else:
             logger.info("Loading MAP")
             self.map = mapa
             for x in range(self.hor_tiles):
                 for y in range(self.ver_tiles):
-                    if self.map[x][y] == Tiles.WALL:
+                    if self.map[x][y] == Tiles.WALL and (x, y) != (1,1):
                         self._walls.append((x, y))
-        self._bomberman_spawn = (1,1) #TODO
-        self._enemies_spawn = [(16,16)] #TODO 
+        self._bomberman_spawn = (1,1) #Always true
     
     def __getstate__(self):
         return self.map

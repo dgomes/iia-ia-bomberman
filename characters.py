@@ -50,28 +50,28 @@ class Bomberman(Character):
         self._powers.append(_type)
 
 class Enemy(Character):
-    def __init__(self, name, points, speed, smart, wallpass):
+    def __init__(self, pos, name, points, speed, smart, wallpass):
         self._name = name
         self._points = points
         self._speed = speed
         self._smart = smart
         self._wallpass = wallpass
+        super().__init__(*pos)
     
     def __str__(self):
         return f"{self._name}"
     
-    @property
     def points(self):
-        self._points
+        return self._points
     
 class Balloom(Enemy):
-    def __init__(self):
-        super().__init__(self.__class__.__name__,
+    def __init__(self, pos):
+        super().__init__(pos, self.__class__.__name__,
             100, 2, 1, False)
 
 class Oneal(Enemy):
-    def __init__(self):
-        super().__init__(self.__class__.__name__,
+    def __init__(self, pos):
+        super().__init__(pos, self.__class__.__name__,
             200, 3, 2, False)
 
   

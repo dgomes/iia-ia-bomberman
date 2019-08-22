@@ -6,7 +6,7 @@ import logging
 from enum import Enum
 
 from map import Map, Tiles
-from characters import Bomberman, Character
+from characters import Bomberman, Balloom, Character
 
 logger = logging.getLogger('Game')
 logger.setLevel(logging.DEBUG)
@@ -70,8 +70,8 @@ class Game:
         self._score = 0
         self._state = {}
         self._initial_lives = lives
-        self.map = Map()
-        self._enemies = self.map.enemies_spawn
+        self.map = Map(enemies=5) #TODO
+        self._enemies = [Balloom(p) for p in self.map.enemies_spawn]
         
         self._highscores = [] 
         if os.path.isfile(f"{level}.score"):
@@ -82,7 +82,7 @@ class Game:
         return json.dumps({"level": self.map.level,
                            "size": self.map.size,
                            "map": self.map.map,
-                           "enemies": self._enemies,
+                           "enemies": [{'name': str(e), 'pos': e.pos} for e in self._enemies],
                            "fps": GAME_SPEED,
                            "timeout": TIMEOUT,
                            "lives": LIVES,
@@ -162,7 +162,7 @@ class Game:
         finally:
             self._lastkeypress = "" #remove inertia
 
-        if len(self._enemies) == 0 and self.map.get_tile(self._bomberman) == Tiles.EXIT:
+        if len(self._enemies) == 0 and self.map.get_tile(self._bomberman.pos) == Tiles.EXIT:
             logger.info("Level completed")
             self.stop()
 
@@ -179,7 +179,7 @@ class Game:
 
     def collision(self):
         for e in self._enemies:
-            if e == self._bomberman.pos:
+            if e.pos == self._bomberman.pos:
                 self.kill_bomberman()
 
     def explode_bomb(self):
@@ -190,7 +190,6 @@ class Game:
                 if bomb.in_range(self._bomberman):
                     self.kill_bomberman()
 
-                #TODO clear walls and enemies and show stuff beneath walls
                 for wall in self.map.walls:
                     if bomb.in_range(wall):
                         self._walls.remove(wall)
@@ -198,6 +197,15 @@ class Game:
                             self._exit = wall
                         if self.map.powerup == wall:
                             self._powerups.append((wall, Powerups.Flames))
+
+                for enemy in self._enemies[:]:
+                    if bomb.in_range(enemy):
+                        print(self._enemies)
+
+                        print("remove enemy")
+                        self._score += enemy.points()
+                        self._enemies.remove(enemy)
+                        print(self._enemies)
 
                 self._bombs.remove(bomb)
                 print(self._bomberman.pos)
@@ -230,14 +238,14 @@ class Game:
                        "lives": self._bomberman.lives,
                        "bomberman": self._bomberman.pos,
                        "bombs": [(b.pos, b.timeout) for b in self._bombs],
-                       "enemies": self._enemies,
+                       "enemies": [{'name': str(e), 'pos': e.pos} for e in self._enemies],
                        "walls": self._walls,
-                       "powerups": self._powerups, # [(pos, name)]
+                       "powerups": [(p, Powerups(n).name) for p, n in self._powerups], 
                        "bonus": self._bonus,
                        "exit": self._exit,
                        }
 
     @property
     def state(self):
-        print(self._state)
+        #print(self._state)
         return json.dumps(self._state)
