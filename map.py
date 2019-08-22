@@ -22,20 +22,25 @@ class Map:
         self.hor_tiles = size[0]
         self.ver_tiles = size[1]
         self._walls = []
+    
         if not mapa:
-            logger.info("GEN MAPA")
+            logger.info("Generating a MAP")
             self.map = [[Tiles.PASSAGE] * self.ver_tiles for i in range(self.hor_tiles)]
-            for x in range(self.hor_tiles):
-                for y in range(self.ver_tiles):
-                    if x in [0, self.hor_tiles-1] or y in [0, self.ver_tiles-1]:
-                        self.map[x][y] = Tiles.STONE
-                    else:
-                        if random.randint(0,10) > 9:
-                            self.map[x][y] = Tiles.WALL
-                            self._walls.append((x, y))
+            while len(self._walls) < 2: #minimum of 2 walls
+                for x in range(self.hor_tiles):
+                    for y in range(self.ver_tiles):
+                        if x in [0, self.hor_tiles-1] or y in [0, self.ver_tiles-1]:
+                            self.map[x][y] = Tiles.STONE
+                        else:
+                            if random.randint(0,10) > 8:
+                                self.map[x][y] = Tiles.WALL
+                                self._walls.append((x, y))
+                    
+            self.exit_door = random.choice(self._walls)
+            self.powerup = random.choice([w for w in self._walls if w != self.exit_door])
 
         else:
-            logger.info("LOAD MAPA")
+            logger.info("Loading MAP")
             self.map = mapa
             for x in range(self.hor_tiles):
                 for y in range(self.ver_tiles):
@@ -48,8 +53,8 @@ class Map:
         return self.map
     
     def __setstate__(self, state):
-        self.map = state
-    
+        self.map = state        
+
     @property
     def size(self):
         return self._size
@@ -63,16 +68,16 @@ class Map:
         return self._level
 
     @property
-    def size(self):
-        return self.hor_tiles, self.ver_tiles 
-
-    @property
     def bomberman_spawn(self):
         return self._bomberman_spawn
 
     @property
     def enemies_spawn(self):
         return self._enemies_spawn
+
+    def get_tile(self, pos):
+        x, y = pos
+        return self.map[x][y]
 
     def is_blocked(self, pos):
         x, y = pos

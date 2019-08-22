@@ -12,8 +12,11 @@ import time
 from map import Map, Tiles
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('websockets')
-logger.setLevel(logging.WARN)
+logger_websockets = logging.getLogger('websockets')
+logger_websockets.setLevel(logging.WARN)
+
+logger = logging.getLogger('Map')
+logger.setLevel(logging.DEBUG)
 
 BOMBERMAN = {'up': (0, 0), 'left': (0, 0), 'down': (0, 0), 'right': (0, 0)}
 STONE = (48, 48)
@@ -107,7 +110,7 @@ class Enemy(pygame.sprite.Sprite):
         if y < self.y:
             self.direction = "up"
 
-        x, y = ENEMIES[self.index][self.direction] 
+        #x, y = ENEMIES[self.index][self.direction] 
 
         return (SPRITES, (2,2), (x, y, x+CROP, y+CROP))
 
@@ -127,7 +130,6 @@ class Bomb(pygame.sprite.Sprite):
     def __init__(self, *args, **kw):
         self.x, self.y = (kw.pop("pos", ((kw.pop("x", 0), kw.pop("y", 0)))))
         self.index = kw.pop("index", 0)
-        self.radius = kw.pop("timeout", 6)//2
         self.timeout = kw.pop("timeout", -1)
         self.rect = pygame.Rect((self.x, self.y) + CHAR_SIZE)
         self.image = pygame.Surface(CHAR_SIZE)
@@ -141,7 +143,6 @@ class Bomb(pygame.sprite.Sprite):
             if scale(pos) == (self.x, self.y):
                 #It's me!
                 self.timeout = timeout
-                print("update")
         if self.timeout == 0:
             print("explode")
             self.exploded = True
@@ -207,7 +208,7 @@ async def main_game():
     # for i in range(newgame_json["enemies"]):
     #     main_group.add(Enemy(pos=scale(mapa.ghost_spawn), images=images, index=i))
     
-    state = {"score": 0, "player": "player1", "bomberman": (2, 2)}
+    state = {"score": 0, "player": "player1", "bomberman": (1, 1)}
     newstate = dict()
     SCREEN2 = SCREEN.copy()
     blit = 0
@@ -224,7 +225,6 @@ async def main_game():
             if blit == 1:
                 SCREEN.blit(SCREEN2, scale((0,0)))
                 blit = 0
-                counter = 0
             text = str(state["score"])
             draw_info(SCREEN, text.zfill(6), (0,0))
             text = str(state["player"]).rjust(32)
@@ -307,4 +307,3 @@ if __name__ == "__main__":
         LOOP.run_until_complete(asyncio.gather(messages_handler(ws_path, q), main_loop(q)))
     finally:
         LOOP.stop()
-        pygame.quit()
