@@ -152,9 +152,10 @@ class Game:
                 new_pos = self.map.calc_pos(self._bomberman.pos, self._lastkeypress) #don't bump into stones/walls
                 if new_pos not in [b.pos for b in self._bombs]: #don't pass over bombs
                     self._bomberman.pos = new_pos
-                if new_pos in [pos for pos, _type in self._powerups]:
-                    self._bomberman.powerup(_type)
-                    self._powerups.remove((pos, _type))
+                for pos, _type in self._powerups:
+                    if new_pos == pos:
+                        self._bomberman.powerup(_type)
+                        self._powerups.remove((pos, _type))
 
         except AssertionError:
             logger.error("Invalid key <%s> pressed", self._lastkeypress)
