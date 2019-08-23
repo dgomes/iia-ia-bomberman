@@ -55,6 +55,7 @@ class Bomb:
         else:
             gx, gy = character
 
+
         return (px == gx or py == gy) and\
             (abs(px - gx) + abs(py - gy)) < self._radius #we share a line/column and we are in distance d
     
@@ -111,7 +112,6 @@ class Game:
         self._step = 0
         self._bomberman = Bomberman(self.map.bomberman_spawn, self._initial_lives)
         self._bombs = []
-        self._walls = self.map.walls
         self._powerups = []
         self._bonus = []
         self._exit = []
@@ -162,7 +162,7 @@ class Game:
         finally:
             self._lastkeypress = "" #remove inertia
 
-        if len(self._enemies) == 0 and self.map.get_tile(self._bomberman.pos) == Tiles.EXIT:
+        if len(self._enemies) == 0 and self._bomberman.pos == self._exit:
             logger.info("Level completed")
             self.stop()
 
@@ -190,9 +190,10 @@ class Game:
                 if bomb.in_range(self._bomberman):
                     self.kill_bomberman()
 
-                for wall in self.map.walls:
+                for wall in self.map.walls[:]:
                     if bomb.in_range(wall):
-                        self._walls.remove(wall)
+                        print("remove: ", wall)
+                        self.map.remove_wall(wall)
                         if self.map.exit_door == wall:
                             self._exit = wall
                         if self.map.powerup == wall:
@@ -239,7 +240,7 @@ class Game:
                        "bomberman": self._bomberman.pos,
                        "bombs": [(b.pos, b.timeout) for b in self._bombs],
                        "enemies": [{'name': str(e), 'pos': e.pos} for e in self._enemies],
-                       "walls": self._walls,
+                       "walls": self.map.walls,
                        "powerups": [(p, Powerups(n).name) for p, n in self._powerups], 
                        "bonus": self._bonus,
                        "exit": self._exit,

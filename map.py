@@ -10,13 +10,10 @@ class Tiles(IntEnum):
     PASSAGE = 0
     STONE = 1
     WALL = 2
-    POWERUPS = 10
-    BONUS = 11
-    EXIT = 100
 
 
 class Map:
-    def __init__(self, level=1, enemies=0, size=(20, 20), mapa=None):
+    def __init__(self, level=1, enemies=0, size=(10, 10), mapa=None):
         self._level = level
         self._size = size
         self.hor_tiles = size[0]
@@ -32,7 +29,7 @@ class Map:
                     for y in range(self.ver_tiles):
                         if x in [0, self.hor_tiles-1] or y in [0, self.ver_tiles-1]:
                             self.map[x][y] = Tiles.STONE
-                        else:
+                        elif x > 2 and y > 2: #give bomberman some room
                             if random.randint(0,10) > 8:
                                 self.map[x][y] = Tiles.WALL
                                 self._walls.append((x, y))
@@ -65,6 +62,9 @@ class Map:
     def walls(self):
         return self._walls
 
+    def remove_wall(self, wall):
+        self._walls.remove(wall)
+
     @property
     def level(self):
         return self._level
@@ -85,7 +85,7 @@ class Map:
         x, y = pos
         if x not in range(self.hor_tiles) or y not in range(self.ver_tiles):
             return True
-        if self.map[x][y] in [Tiles.STONE, Tiles.WALL]:
+        if self.map[x][y] in [Tiles.STONE] or (x, y) in self._walls:
             return True
         return False
 

@@ -18,11 +18,14 @@ logger_websockets.setLevel(logging.WARN)
 logger = logging.getLogger('Map')
 logger.setLevel(logging.DEBUG)
 
-BOMBERMAN = {'up': (0, 0), 'left': (0, 0), 'down': (0, 0), 'right': (0, 0)}
-ENEMIES = {'Balloom': (0, 240)}
+BOMBERMAN = {'up': (3*16, 1*16), 'left': (0, 0), 'down': (3*16, 0), 'right': (0, 1*16)}
+BALLOOM = {'up': (0, 15*16), 'left': (16, 15*16), 'down': (2*16, 15*16), 'right': (3, 15*16)}
+ENEMIES = {'Balloom': BALLOOM}
+POWERUPS = {'Bombs': (0, 14*16), 'Flames': (1*16, 14*16)}
 STONE = (48, 48)
 WALL = (64, 48)
 PASSAGE = (0, 64)
+EXIT = (11*16, 3*16)
 BOMB = [(32, 48), (16, 48), (0, 48)]
 EXPLOSION = {'c': (112,96), 'l': (96, 96), 'r': (128, 96), 'u': (112,80), 'd': (112, 112),
                             'xl': (80, 96), 'xr': (144, 96), 'xu': (112,64), 'xd': (112, 128) }
@@ -49,106 +52,113 @@ async def messages_handler(ws_path, queue):
 class GameOver(BaseException):
     pass
 
-class BomberMan(pygame.sprite.Sprite):
+class Artifact(pygame.sprite.Sprite):
     def __init__(self, *args, **kw):
-        self.x, self.y = (kw.pop("pos", ((kw.pop("x", 0), kw.pop("y", 0)))))
-        self.rect = pygame.Rect((self.x, self.y) + CHAR_SIZE)
+        self.x, self.y = None, None #postpone to update_sprite()
+
+        x, y = (kw.pop("pos", ((kw.pop("x", 0), kw.pop("y", 0)))))
+        new_pos = scale((x, y))
         self.image = pygame.Surface(CHAR_SIZE)
-        self.direction = "left"
-        self.image.blit(*self.sprite_pos())
-        self.image = pygame.transform.scale(self.image, scale((1,1)))
+        self.rect = pygame.Rect(new_pos + CHAR_SIZE)
+
+        self.update_sprite((x, y))
         super().__init__()
-   
-    def sprite_pos(self, new_pos=(0,0)):
-        CROP = 16 
-        x, y = new_pos 
-        
-        if x > self.x:
-            self.direction = "right"
-        if x < self.x:
-            self.direction = "left"
-        if y > self.y:
-            self.direction = "down"
-        if y < self.y:
-            self.direction = "up"
 
-        x, y = BOMBERMAN[self.direction]
-        return (SPRITES, (0,0), (x, y, x+CROP, y+CROP))
-
-    def update(self, state):
-        if 'bomberman' in state:
-            x, y = state['bomberman']
-            sx, sy = scale((x, y))
-            self.rect = pygame.Rect((sx, sy) + CHAR_SIZE)
-            self.image = pygame.Surface(CHAR_SIZE)
-            self.image.fill((0,0,230))
-            self.image.blit(*self.sprite_pos((sx, sy)))
-            self.image = pygame.transform.scale(self.image, scale((1, 1)))
-
-            self.x, self.y = sx, sy
-
-class Enemy(pygame.sprite.Sprite):
-    def __init__(self, *args, **kw):
-        self.x, self.y = (kw.pop("pos", ((kw.pop("x", 0), kw.pop("y", 0)))))
-        self.index = kw.pop("index", 0)
-        self.direction = "left"
-        self.name = "Balloom" #TODO multiple enemies
-        self.rect = pygame.Rect((self.x, self.y) + CHAR_SIZE)
-        self.image = pygame.Surface(CHAR_SIZE)
-        self.image.blit(*self.sprite_pos((self.x, self.y)))
-        self.image = pygame.transform.scale(self.image, scale((1,1)))
-        super().__init__()
-   
-    def sprite_pos(self, new_pos):
-        CROP = 16 
-        x, y = new_pos 
-
-        if x > self.x:
-            self.direction = "right"
-        if x < self.x:
-            self.direction = "left"
-        if y > self.y:
-            self.direction = "down"
-        if y < self.y:
-            self.direction = "up"
-
-        x, y = ENEMIES[self.name]
-
-        return (SPRITES, (2,2), (x, y, x+CROP, y+CROP))
-
-    def update(self, state):
-        if 'enemies' in state:
-            (x, y), zombie, z_timeout = state['enemies'][self.index]
-            sx, sy = scale((x, y))
-            self.rect = pygame.Rect((sx, sy) + CHAR_SIZE)
-            self.image = pygame.Surface(CHAR_SIZE)
-            self.image.fill((0,0,0))
-            self.image.blit(*self.sprite_pos((sx, sy), zombie))
-            self.image = pygame.transform.scale(self.image, scale((1,1)))
-
-            self.x, self.y = sx, sy
-
-class Bomb(pygame.sprite.Sprite):
-    def __init__(self, *args, **kw):
-        self.x, self.y = (kw.pop("pos", ((kw.pop("x", 0), kw.pop("y", 0)))))
-        self.index = kw.pop("index", 0)
-        self.timeout = kw.pop("timeout", -1)
-        self.rect = pygame.Rect((self.x, self.y) + CHAR_SIZE)
-        self.image = pygame.Surface(CHAR_SIZE)
-        self.image.blit(SPRITES, (0, 0), (*BOMB[self.timeout%3], *scale((1,1))))
-        self.image = pygame.transform.scale(self.image, scale((1,1)))
-        self.exploded = False
-        super().__init__()
+    def update_sprite(self, pos = None):
+        if not pos:
+            pos = self.x, self.y
+        else:
+            pos = scale(pos)
+        self.rect = pygame.Rect(pos + CHAR_SIZE)
+        self.image.fill((0,0,230))
+        self.image.blit(*self.sprite)
+        self.image = pygame.transform.scale(self.image, scale((1, 1)))
+        self.x, self.y = pos
     
-    def update(self, state):
-        for pos, timeout in state['bombs']:
+    def update(self, *args):
+        self.update_sprite()
+
+class BomberMan(Artifact):
+    def __init__(self, *args, **kw):
+        self.direction = "left"
+        self.sprite = (SPRITES, (0,0), (*BOMBERMAN[self.direction], *scale((1,1))))
+        super().__init__(*args, **kw)
+
+    def update(self, new_pos):
+        x, y = scale(new_pos)
+
+        if x > self.x:
+            self.direction = "right"
+        if x < self.x:
+            self.direction = "left"
+        if y > self.y:
+            self.direction = "down"
+        if y < self.y:
+            self.direction = "up"
+
+        self.sprite = (SPRITES, (0,0), (*BOMBERMAN[self.direction], *scale((1,1))))
+        self.update_sprite(tuple(new_pos))
+
+
+class Enemy(Artifact):
+    def __init__(self, *args, **kw):
+        self.direction = "left"
+        self.name = kw.pop("name") #TODO multiple enemies
+        self.sprite = (SPRITES, (0,0), (*ENEMIES[self.name][self.direction], *scale((1,1))))
+        super().__init__(*args, **kw)
+   
+    def update(self, new_pos):
+        x, y = scale(new_pos)
+
+        if x > self.x:
+            self.direction = "right"
+        if x < self.x:
+            self.direction = "left"
+        if y > self.y:
+            self.direction = "down"
+        if y < self.y:
+            self.direction = "up"
+
+        self.sprite = (SPRITES, (0,0), (*ENEMIES[self.name][self.direction], *scale((1,1))))
+        self.update_sprite(new_pos)
+            
+
+class Bomb(Artifact):
+    def __init__(self, *args, **kw):
+        self.index = 0
+        self.sprite = (SPRITES, (0,0), (*BOMB[self.index], *scale((1,1))))
+        self.exploded = False
+        self.timeout = kw.pop("timeout", -1)
+        super().__init__(*args, **kw)
+
+    def update(self, bombs_state):
+        for pos, timeout in bombs_state:
             if scale(pos) == (self.x, self.y):
                 #It's me!
-                self.timeout = timeout
+                self.timeout = int(timeout)
+                self.index = (self.index + 1) % len(BOMB)
+                self.sprite = (SPRITES, (0,0), (*BOMB[self.index], *scale((1,1))))
         if self.timeout == 0:
             self.exploded = True
-            self.image.blit(SPRITES, (0,0), (*EXPLOSION['c'], *scale((1,1))))
-#TODO class WALL
+            self.sprite = (SPRITES, (0,0), (*EXPLOSION['c'], *scale((1,1))))
+
+        self.update_sprite()
+
+class Wall(Artifact):
+    def __init__(self, *args, **kw):
+        self.sprite = (SPRITES, (0,0), (*WALL, *scale((1,1))))
+        super().__init__(*args, **kw)
+
+class Exit(Artifact):
+    def __init__(self, *args, **kw):
+        self.sprite = (SPRITES, (0, 0), (*EXIT, *scale((1,1))))
+        super().__init__(*args, **kw)
+
+class Powerups(Artifact):
+    def __init__(self, *args, **kw):
+        self.type = kw.pop("name")
+        self.sprite = (SPRITES, (0,0), (*POWERUPS[self.type], *scale((1,1))))
+        super().__init__(*args, **kw)
 
 def clear_callback(surf, rect):
     """beneath everything there is a passage."""
@@ -164,8 +174,6 @@ def draw_background(mapa, SCREEN):
             wx, wy = scale((x, y))
             if mapa.map[x][y] == Tiles.STONE:
                 SCREEN.blit(SPRITES, (wx, wy), (*STONE, *scale((1,1))))
-            elif mapa.map[x][y] == Tiles.WALL:
-                SCREEN.blit(SPRITES, (wx, wy), (*WALL, *scale((1,1))))
             else:
                 SCREEN.blit(SPRITES, (wx, wy), (*PASSAGE, *scale((1,1,))))
         
@@ -193,9 +201,10 @@ async def main_loop(q):
         await main_game()
 
 async def main_game():
-    main_group = pygame.sprite.OrderedUpdates()
+    main_group = pygame.sprite.LayeredUpdates()
     bombs_group = pygame.sprite.OrderedUpdates()
     enemies_group = pygame.sprite.OrderedUpdates()
+    walls_group = pygame.sprite.OrderedUpdates()
 
     logging.info("Waiting for map information from server") 
     state = await q.get() #first state message includes map information
@@ -207,10 +216,10 @@ async def main_game():
     SCREEN = pygame.display.set_mode(scale(mapa.size))
    
     draw_background(mapa, SCREEN)
-    main_group.add(BomberMan(pos=scale(mapa.bomberman_spawn)))
+    main_group.add(BomberMan(pos=mapa.bomberman_spawn))
 
     for enemy in newgame_json['enemies']:
-        enemies_group.add(Enemy(name=enemy['name'], pos=scale(enemy['pos'])))
+        enemies_group.add(Enemy(name=enemy['name'], pos=enemy['pos']))
     # for i in range(newgame_json["enemies"]):
     #     main_group.add(Enemy(pos=scale(mapa.ghost_spawn), images=images, index=i))
     
@@ -219,6 +228,7 @@ async def main_game():
     SCREEN2 = SCREEN.copy()
     blit = 0
     start_time = time.process_time()
+
     while True:
         pygame.event.pump()
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
@@ -243,13 +253,42 @@ async def main_game():
                     bombs_group.remove(bomb)
             if len(bombs_group.sprites()) < len(state["bombs"]):
                 pos, timeout = state["bombs"][-1]
-                bombs_group.add(Bomb(pos=scale(pos),timeout=timeout))
-            bombs_group.update(state)
+                bombs_group.add(Bomb(pos=pos,timeout=timeout))
+            bombs_group.update(state['bombs'])
         
-        enemies_group.empty()
-        if "enemies" in state:
+        if "enemies" in state and len(state['enemies']) != len(enemies_group.sprites()):
+            enemies_group.empty()
             for enemy in state['enemies']:
-                enemies_group.add(Enemy(name=enemy['name'], pos=scale(enemy['pos'])))
+                enemies_group.add(Enemy(name=enemy['name'], pos=enemy['pos']))
+
+        if "walls" in state and len(state['walls']) != len(walls_group.sprites()):
+            walls_group.empty()
+            walls_group.clear(SCREEN, clear_callback)
+
+            for wall in state['walls']:
+                walls_group.add(Wall(pos=wall))
+            walls_group.draw(SCREEN)
+
+        if "exit" in state and len(state['exit']):
+            logger.debug("Add Exit")
+            ex = Exit(pos=state['exit'])
+            main_group.add(ex)
+            main_group.move_to_back(ex)
+
+        if "powerups" in state:
+            for pos, name in state['powerups']:
+                if name not in [p.type for p in main_group if isinstance(p, Powerups)]:
+                    logger.debug(f"Add {name}")
+                    p = Powerups(pos=pos, name=name)
+                    main_group.add(p)
+                    main_group.move_to_back(ex)
+            for powerup in main_group:
+                if isinstance(powerup, Powerups):
+                    name = powerup.type
+                    if name not in [p[1] for p in state['powerups']]:
+                        logger.debug(f"Remove {name}")
+                        main_group.remove(powerup)
+
 
         # if "energy" in state:
         #     for x, y in state["energy"]:
@@ -259,8 +298,8 @@ async def main_game():
         #         draw_energy(SCREEN, x, y, True)
 
         main_group.draw(SCREEN)
-        bombs_group.draw(SCREEN)
         enemies_group.draw(SCREEN)
+        bombs_group.draw(SCREEN)
 
         #Highscores Board
         elapsed_time = (time.process_time() - start_time) * 100
@@ -287,7 +326,8 @@ async def main_game():
 
         newstate = state
 
-        main_group.update(state)
+        if 'bomberman' in state:
+            main_group.update(state['bomberman'])
        
         pygame.display.flip()
         
