@@ -1,3 +1,4 @@
+from consts import Powerups
 
 DEFAULT_LIVES = 3
 
@@ -39,6 +40,9 @@ class Bomberman(Character):
     @property
     def lives(self):
         return self._lives
+
+    def flames(self):
+        return len([p for p in self._powers if p == Powerups.Flames])
 
     def respawn(self):
         self.pos = self._spawn_pos

@@ -3,7 +3,7 @@ import os
 import asyncio
 import json
 import logging
-from enum import Enum
+from consts import Powerups
 
 from map import Map, Tiles
 from characters import Bomberman, Balloom, Character
@@ -15,18 +15,8 @@ LIVES = 3
 INITIAL_SCORE = 0
 TIMEOUT = 3000 
 MAX_HIGHSCORES = 10
-GAME_SPEED = 10 
+GAME_SPEED = 10
 MIN_BOMB_RADIUS = 3
-
-class Powerups(Enum):
-    Bombs = 1,
-    Flames = 2,
-    Speed = 3,
-    Wallpass = 4,
-    Detonator = 5,
-    Bombpass = 6,
-    Flamepass = 7,
-    Mystery = 8  
 
 class Bomb:
     def __init__(self, pos, radius, detonator=False):
@@ -146,7 +136,7 @@ class Game:
             if self._lastkeypress.isupper():
                 #Parse action
                 if self._lastkeypress == 'B' and len(self._bombs) < self._bomberman.powers.count(Powerups.Bombs) + 1:
-                    self._bombs.append(Bomb(self._bomberman.pos, MIN_BOMB_RADIUS)) # must be dependent of powerup
+                    self._bombs.append(Bomb(self._bomberman.pos, MIN_BOMB_RADIUS+self._bomberman.flames())) # must be dependent of powerup
             else:
                 #Update position
                 new_pos = self.map.calc_pos(self._bomberman.pos, self._lastkeypress) #don't bump into stones/walls
@@ -158,7 +148,7 @@ class Game:
                         self._powerups.remove((pos, _type))
 
         except AssertionError:
-            logger.error("Invalid key <%s> pressed", self._lastkeypress)
+            logger.error("Invalid key <%s> pressed. Valid keys: w,a,s,d A B", self._lastkeypress)
         finally:
             self._lastkeypress = "" #remove inertia
 
@@ -169,11 +159,10 @@ class Game:
     def kill_bomberman(self):
         logger.info("bomberman has died on step: {}".format(self._step))
         self._bomberman.kill()
-        print(self._bomberman.lives)
+        logger.debug(f"bomberman has now {self._bomberman.lives} lives")
         if self._bomberman.lives > 0:
             logger.debug("RESPAWN")
             self._bomberman.respawn()
-            #TODO respawn enemies avoiding enemies being at the spawn position of bomberman
         else:
             self.stop()
 
@@ -192,7 +181,7 @@ class Game:
 
                 for wall in self.map.walls[:]:
                     if bomb.in_range(wall):
-                        print("remove: ", wall)
+                        logger.debug(f"Destroying wall @{wall}")
                         self.map.remove_wall(wall)
                         if self.map.exit_door == wall:
                             self._exit = wall
@@ -201,15 +190,11 @@ class Game:
 
                 for enemy in self._enemies[:]:
                     if bomb.in_range(enemy):
-                        print(self._enemies)
-
-                        print("remove enemy")
+                        logger.debug(f"killed enemy @{enemy}")
                         self._score += enemy.points()
                         self._enemies.remove(enemy)
-                        print(self._enemies)
 
                 self._bombs.remove(bomb)
-                print(self._bomberman.pos)
 
     async def next_frame(self):
         await asyncio.sleep(1./GAME_SPEED)
@@ -248,5 +233,5 @@ class Game:
 
     @property
     def state(self):
-        #print(self._state)
+        #logger.debug(self._state)
         return json.dumps(self._state)

@@ -59,7 +59,8 @@ class Artifact(pygame.sprite.Sprite):
         x, y = (kw.pop("pos", ((kw.pop("x", 0), kw.pop("y", 0)))))
         new_pos = scale((x, y))
         self.image = pygame.Surface(CHAR_SIZE)
-        self.rect = pygame.Rect(new_pos + CHAR_SIZE)
+        if not hasattr(self, 'rect'):
+            self.rect = pygame.Rect(new_pos + CHAR_SIZE)
 
         self.update_sprite((x, y))
         super().__init__()
@@ -77,6 +78,7 @@ class Artifact(pygame.sprite.Sprite):
     
     def update(self, *args):
         self.update_sprite()
+
 
 class BomberMan(Artifact):
     def __init__(self, *args, **kw):
@@ -129,7 +131,11 @@ class Bomb(Artifact):
         self.sprite = (SPRITES, (0,0), (*BOMB[self.index], *scale((1,1))))
         self.exploded = False
         self.timeout = kw.pop("timeout", -1)
+        self.radius = kw.pop("radius", 0)
+        self.rect = pygame.Rect(*scale((kw['pos'][0], kw['pos'][1])))
+
         super().__init__(*args, **kw)
+        
 
     def update(self, bombs_state):
         for pos, timeout in bombs_state:
@@ -164,6 +170,10 @@ def clear_callback(surf, rect):
     """beneath everything there is a passage."""
     surf.blit(SPRITES, (rect[0], rect[1]), (*PASSAGE, *scale((1,1,))))
 
+def clear_callback2(surf, rect):
+    """beneath everything there is a passage."""
+    surf.blit(SPRITES, (rect[0], rect[1]), (*STONE, *scale((1,1,))))
+
 def scale(pos):
     x, y = pos
     return int(x * CHAR_LENGTH / SCALE), int(y * CHAR_LENGTH / SCALE)
@@ -177,7 +187,7 @@ def draw_background(mapa, SCREEN):
             else:
                 SCREEN.blit(SPRITES, (wx, wy), (*PASSAGE, *scale((1,1,))))
         
-def draw_info(SCREEN, text, pos, color=(0,0,0), background=None):
+def draw_info(SCREEN, text, pos, color=(0,0,0), background=None): #TODO rewrite
     myfont = pygame.font.Font(None, int(30/SCALE))
     textsurface = myfont.render(text, True, color, background)
 
@@ -208,7 +218,7 @@ async def main_game():
 
     logging.info("Waiting for map information from server") 
     state = await q.get() #first state message includes map information
-    logging.debug("%s", state)
+    logging.debug("Initial game status: %s", state)
     newgame_json = json.loads(state)
 
     GAME_SPEED = newgame_json["fps"]
@@ -220,13 +230,8 @@ async def main_game():
 
     for enemy in newgame_json['enemies']:
         enemies_group.add(Enemy(name=enemy['name'], pos=enemy['pos']))
-    # for i in range(newgame_json["enemies"]):
-    #     main_group.add(Enemy(pos=scale(mapa.ghost_spawn), images=images, index=i))
     
     state = {"score": 0, "player": "player1", "bomberman": (1, 1)}
-    newstate = dict()
-    SCREEN2 = SCREEN.copy()
-    blit = 0
     start_time = time.process_time()
 
     while True:
@@ -235,13 +240,10 @@ async def main_game():
             asyncio.get_event_loop().stop() 
  
         main_group.clear(SCREEN, clear_callback)
-        bombs_group.clear(SCREEN, clear_callback)
+        bombs_group.clear(SCREEN, clear_callback2)
         enemies_group.clear(SCREEN, clear_callback)
         
         if "score" in state:
-            if blit == 1:
-                SCREEN.blit(SCREEN2, scale((0,0)))
-                blit = 0
             text = str(state["score"])
             draw_info(SCREEN, text.zfill(6), (0,0))
             text = str(state["player"]).rjust(32)
@@ -256,12 +258,12 @@ async def main_game():
                 bombs_group.add(Bomb(pos=pos,timeout=timeout))
             bombs_group.update(state['bombs'])
         
-        if "enemies" in state and len(state['enemies']) != len(enemies_group.sprites()):
+        if 'enemies' in state and len(state['enemies']) != len(enemies_group.sprites()):
             enemies_group.empty()
             for enemy in state['enemies']:
                 enemies_group.add(Enemy(name=enemy['name'], pos=enemy['pos']))
 
-        if "walls" in state and len(state['walls']) != len(walls_group.sprites()):
+        if 'walls' in state and len(state['walls']) != len(walls_group.sprites()):
             walls_group.empty()
             walls_group.clear(SCREEN, clear_callback)
 
@@ -269,19 +271,20 @@ async def main_game():
                 walls_group.add(Wall(pos=wall))
             walls_group.draw(SCREEN)
 
-        if "exit" in state and len(state['exit']):
-            logger.debug("Add Exit")
-            ex = Exit(pos=state['exit'])
-            main_group.add(ex)
-            main_group.move_to_back(ex)
+        if 'exit' in state and len(state['exit']):
+            if not [p for p in main_group if isinstance(p, Exit)]:
+                logger.debug("Add Exit")
+                ex = Exit(pos=state['exit'])
+                main_group.add(ex)
+                main_group.move_to_back(ex)
 
-        if "powerups" in state:
+        if 'powerups' in state:
             for pos, name in state['powerups']:
                 if name not in [p.type for p in main_group if isinstance(p, Powerups)]:
                     logger.debug(f"Add {name}")
                     p = Powerups(pos=pos, name=name)
                     main_group.add(p)
-                    main_group.move_to_back(ex)
+                    main_group.move_to_back(p)
             for powerup in main_group:
                 if isinstance(powerup, Powerups):
                     name = powerup.type
@@ -289,42 +292,25 @@ async def main_game():
                         logger.debug(f"Remove {name}")
                         main_group.remove(powerup)
 
-
-        # if "energy" in state:
-        #     for x, y in state["energy"]:
-        #         draw_energy(SCREEN, x, y)
-        # if "boost" in state:
-        #     for x, y in state["boost"]:
-        #         draw_energy(SCREEN, x, y, True)
-
         main_group.draw(SCREEN)
         enemies_group.draw(SCREEN)
         bombs_group.draw(SCREEN)
 
         #Highscores Board
         elapsed_time = (time.process_time() - start_time) * 100
-        if elapsed_time >= 200 or state == {}:
-            start_time = time.process_time()
-
-            if newstate == state: #TODO detect end of game
-                highscores = newgame_json["highscores"]
-                if blit == 0:
-                    SCREEN.blit(pygame.Surface(scale((20,40))), scale((0,0)))
-                    blit = 1
-                    state = dict()
-                draw_info(SCREEN, "THE 10 BEST PLAYERS", scale((5,2)), COLORS['white'], BACKGROUND)
-                draw_info(SCREEN, "RANK", scale((2,4)), COLORS['orange'], BACKGROUND)
-                draw_info(SCREEN, "SCORE", scale((6,4)), COLORS['orange'], BACKGROUND)
-                draw_info(SCREEN, "NAME", scale((11,4)), COLORS['orange'], BACKGROUND)
-                    
-                for i, highscore in enumerate(highscores):
-                    c = (i % 5) + 1
-                    draw_info(SCREEN, RANKS[i+1], scale((2,i+6)), list(COLORS.values())[c], BACKGROUND)
-                    draw_info(SCREEN, str(highscore[1]), scale((6,i+6)), list(COLORS.values())[c], BACKGROUND)
-                    draw_info(SCREEN, highscore[0], scale((11,i+6)), list(COLORS.values())[c], BACKGROUND)
-
-
-        newstate = state
+        if elapsed_time >= 200 or\
+            ('bomberman' in state and 'exit' in state and state['bomberman'] == state['exit']):
+            highscores = newgame_json["highscores"]
+            draw_info(SCREEN, "THE 10 BEST PLAYERS", scale((5,2)), COLORS['white'], BACKGROUND)
+            draw_info(SCREEN, "RANK", scale((2,4)), COLORS['orange'], BACKGROUND)
+            draw_info(SCREEN, "SCORE", scale((6,4)), COLORS['orange'], BACKGROUND)
+            draw_info(SCREEN, "NAME", scale((11,4)), COLORS['orange'], BACKGROUND)
+                
+            for i, highscore in enumerate(highscores):
+                c = (i % 5) + 1
+                draw_info(SCREEN, RANKS[i+1], scale((2,i+6)), list(COLORS.values())[c], BACKGROUND)
+                draw_info(SCREEN, str(highscore[1]), scale((6,i+6)), list(COLORS.values())[c], BACKGROUND)
+                draw_info(SCREEN, highscore[0], scale((11,i+6)), list(COLORS.values())[c], BACKGROUND)
 
         if 'bomberman' in state:
             main_group.update(state['bomberman'])
