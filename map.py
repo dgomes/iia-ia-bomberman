@@ -13,7 +13,7 @@ class Tiles(IntEnum):
 
 
 class Map:
-    def __init__(self, level=1, enemies=0, size=(10, 10), mapa=None):
+    def __init__(self, level=1, enemies=0, size=(50, 20), mapa=None):
         self._level = level
         self._size = size
         self.hor_tiles = size[0]

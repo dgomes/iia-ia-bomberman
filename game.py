@@ -32,6 +32,10 @@ class Bomb:
     def timeout(self):
         return self._timeout
 
+    @property
+    def radius(self):
+        return self._radius
+
     def update(self):
         self._timeout-=1/2
 
@@ -47,7 +51,7 @@ class Bomb:
 
 
         return (px == gx or py == gy) and\
-            (abs(px - gx) + abs(py - gy)) < self._radius #we share a line/column and we are in distance d
+            (abs(px - gx) + abs(py - gy)) <= self._radius #we share a line/column and we are in distance d
     
     def __repr__(self):
         return self._pos
@@ -219,11 +223,12 @@ class Game:
 
         self.collision()
         self._state = {"step": self._step,
+                       "timeout": self._timeout,
                        "player": self._player_name,
                        "score": self._score,
                        "lives": self._bomberman.lives,
                        "bomberman": self._bomberman.pos,
-                       "bombs": [(b.pos, b.timeout) for b in self._bombs],
+                       "bombs": [(b.pos, b.timeout, b.radius) for b in self._bombs],
                        "enemies": [{'name': str(e), 'pos': e.pos} for e in self._enemies],
                        "walls": self.map.walls,
                        "powerups": [(p, Powerups(n).name) for p, n in self._powerups], 

@@ -59,9 +59,7 @@ class Artifact(pygame.sprite.Sprite):
         x, y = (kw.pop("pos", ((kw.pop("x", 0), kw.pop("y", 0)))))
         new_pos = scale((x, y))
         self.image = pygame.Surface(CHAR_SIZE)
-        if not hasattr(self, 'rect'):
-            self.rect = pygame.Rect(new_pos + CHAR_SIZE)
-
+        self.rect = pygame.Rect(new_pos + CHAR_SIZE)
         self.update_sprite((x, y))
         super().__init__()
 
@@ -73,7 +71,7 @@ class Artifact(pygame.sprite.Sprite):
         self.rect = pygame.Rect(pos + CHAR_SIZE)
         self.image.fill((0,0,230))
         self.image.blit(*self.sprite)
-        self.image = pygame.transform.scale(self.image, scale((1, 1)))
+        #self.image = pygame.transform.scale(self.image, scale((1, 1)))
         self.x, self.y = pos
     
     def update(self, *args):
@@ -132,23 +130,44 @@ class Bomb(Artifact):
         self.exploded = False
         self.timeout = kw.pop("timeout", -1)
         self.radius = kw.pop("radius", 0)
-        self.rect = pygame.Rect(*scale((kw['pos'][0], kw['pos'][1])))
-
         super().__init__(*args, **kw)
-        
 
     def update(self, bombs_state):
-        for pos, timeout in bombs_state:
+        for pos, timeout, radius in bombs_state:
             if scale(pos) == (self.x, self.y):
                 #It's me!
                 self.timeout = int(timeout)
+                self.radius = radius
                 self.index = (self.index + 1) % len(BOMB)
                 self.sprite = (SPRITES, (0,0), (*BOMB[self.index], *scale((1,1))))
+                self.update_sprite()
         if self.timeout == 0:
             self.exploded = True
-            self.sprite = (SPRITES, (0,0), (*EXPLOSION['c'], *scale((1,1))))
+            self.sprite = ()
 
-        self.update_sprite()
+            self.rect.inflate_ip(self.radius*2*CHAR_LENGTH, self.radius*2*CHAR_LENGTH)
+            
+            self.image = pygame.Surface((self.radius*2*CHAR_LENGTH+CHAR_LENGTH, self.radius*2*CHAR_LENGTH+CHAR_LENGTH))
+            self.image.blit(SPRITES, scale((self.radius, self.radius)),
+                            (*EXPLOSION['c'], *scale((1,1))))
+            for r in range(1, self.radius):
+                self.image.blit(SPRITES, scale((self.radius-r, self.radius)),
+                                (*EXPLOSION['l'], *scale((1,1))))
+                self.image.blit(SPRITES, scale((self.radius+r, self.radius)),
+                                (*EXPLOSION['r'], *scale((1,1))))
+                self.image.blit(SPRITES, scale((self.radius, self.radius-r)),
+                                (*EXPLOSION['u'], *scale((1,1))))
+                self.image.blit(SPRITES, scale((self.radius, self.radius+r)),
+                                (*EXPLOSION['d'], *scale((1,1))))
+            self.image.blit(SPRITES, scale((0, self.radius)),
+                                (*EXPLOSION['xl'], *scale((1,1))))
+            self.image.blit(SPRITES, scale((2*self.radius, self.radius)),
+                                (*EXPLOSION['xr'], *scale((1,1))))
+            self.image.blit(SPRITES, scale((self.radius, 0)),
+                                (*EXPLOSION['xu'], *scale((1,1))))
+            self.image.blit(SPRITES, scale((self.radius, 2*self.radius)),
+                                (*EXPLOSION['xd'], *scale((1,1))))
+                
 
 class Wall(Artifact):
     def __init__(self, *args, **kw):
@@ -168,24 +187,22 @@ class Powerups(Artifact):
 
 def clear_callback(surf, rect):
     """beneath everything there is a passage."""
-    surf.blit(SPRITES, (rect[0], rect[1]), (*PASSAGE, *scale((1,1,))))
-
-def clear_callback2(surf, rect):
-    """beneath everything there is a passage."""
-    surf.blit(SPRITES, (rect[0], rect[1]), (*STONE, *scale((1,1,))))
+    surf.blit(SPRITES, (rect.x, rect.y), (*PASSAGE, rect.width, rect.height))
 
 def scale(pos):
     x, y = pos
     return int(x * CHAR_LENGTH / SCALE), int(y * CHAR_LENGTH / SCALE)
 
-def draw_background(mapa, SCREEN):
+def draw_background(mapa):
+    background = pygame.Surface(scale((int(mapa.size[0]), int(mapa.size[1]))))
     for x in range(int(mapa.size[0])):
         for y in range(int(mapa.size[1])):
             wx, wy = scale((x, y))
             if mapa.map[x][y] == Tiles.STONE:
-                SCREEN.blit(SPRITES, (wx, wy), (*STONE, *scale((1,1))))
+                background.blit(SPRITES, (wx, wy), (*STONE, *scale((1,1))))
             else:
-                SCREEN.blit(SPRITES, (wx, wy), (*PASSAGE, *scale((1,1,))))
+                background.blit(SPRITES, (wx, wy), (*PASSAGE, *scale((1,1,))))
+    return background
         
 def draw_info(SCREEN, text, pos, color=(0,0,0), background=None): #TODO rewrite
     myfont = pygame.font.Font(None, int(30/SCALE))
@@ -203,14 +220,12 @@ def draw_info(SCREEN, text, pos, color=(0,0,0), background=None): #TODO rewrite
     SCREEN.blit(textsurface,pos)
 
 async def main_loop(q):
-    global SPRITES
-
-    SPRITES = pygame.image.load("data/nes.png")
-
     while True:
         await main_game()
 
 async def main_game():
+    global SPRITES, SCREEN
+
     main_group = pygame.sprite.LayeredUpdates()
     bombs_group = pygame.sprite.OrderedUpdates()
     enemies_group = pygame.sprite.OrderedUpdates()
@@ -223,9 +238,12 @@ async def main_game():
 
     GAME_SPEED = newgame_json["fps"]
     mapa = Map(level = newgame_json['level'], size = newgame_json['size'], mapa = newgame_json['map'])
+    TIMEOUT = newgame_json['timeout']
     SCREEN = pygame.display.set_mode(scale(mapa.size))
+    SPRITES = pygame.image.load("data/nes.png").convert_alpha()
    
-    draw_background(mapa, SCREEN)
+    BACKGROUND = draw_background(mapa)
+    SCREEN.blit(BACKGROUND, (0, 0))
     main_group.add(BomberMan(pos=mapa.bomberman_spawn))
 
     for enemy in newgame_json['enemies']:
@@ -240,7 +258,7 @@ async def main_game():
             asyncio.get_event_loop().stop() 
  
         main_group.clear(SCREEN, clear_callback)
-        bombs_group.clear(SCREEN, clear_callback2)
+        bombs_group.clear(SCREEN, BACKGROUND)
         enemies_group.clear(SCREEN, clear_callback)
         
         if "score" in state:
@@ -254,22 +272,19 @@ async def main_game():
                 if bomb.exploded:
                     bombs_group.remove(bomb)
             if len(bombs_group.sprites()) < len(state["bombs"]):
-                pos, timeout = state["bombs"][-1]
-                bombs_group.add(Bomb(pos=pos,timeout=timeout))
+                pos, timeout, radius = state["bombs"][-1]
+                bombs_group.add(Bomb(pos=pos,timeout=timeout, radius=radius))
             bombs_group.update(state['bombs'])
         
-        if 'enemies' in state and len(state['enemies']) != len(enemies_group.sprites()):
+        if 'enemies' in state:
             enemies_group.empty()
             for enemy in state['enemies']:
                 enemies_group.add(Enemy(name=enemy['name'], pos=enemy['pos']))
 
-        if 'walls' in state and len(state['walls']) != len(walls_group.sprites()):
+        if 'walls' in state:
             walls_group.empty()
-            walls_group.clear(SCREEN, clear_callback)
-
             for wall in state['walls']:
                 walls_group.add(Wall(pos=wall))
-            walls_group.draw(SCREEN)
 
         if 'exit' in state and len(state['exit']):
             if not [p for p in main_group if isinstance(p, Exit)]:
@@ -292,13 +307,13 @@ async def main_game():
                         logger.debug(f"Remove {name}")
                         main_group.remove(powerup)
 
+        walls_group.draw(SCREEN)
         main_group.draw(SCREEN)
         enemies_group.draw(SCREEN)
         bombs_group.draw(SCREEN)
 
         #Highscores Board
-        elapsed_time = (time.process_time() - start_time) * 100
-        if elapsed_time >= 200 or\
+        if 'step' in state and state['step'] >= TIMEOUT or\
             ('bomberman' in state and 'exit' in state and state['bomberman'] == state['exit']):
             highscores = newgame_json["highscores"]
             draw_info(SCREEN, "THE 10 BEST PLAYERS", scale((5,2)), COLORS['white'], BACKGROUND)
