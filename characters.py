@@ -67,6 +67,10 @@ class Enemy(Character):
     
     def points(self):
         return self._points
+
+    def move(self, mapa): #TODO implement movements
+        print("move")
+        pass
     
 class Balloom(Enemy):
     def __init__(self, pos):

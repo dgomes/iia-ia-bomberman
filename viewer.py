@@ -205,11 +205,11 @@ def draw_background(mapa):
     return background
         
 def draw_info(SCREEN, text, pos, color=(0,0,0), background=None): #TODO rewrite
-    myfont = pygame.font.Font(None, int(30/SCALE))
+    myfont = pygame.font.Font(None, int(22/SCALE))
     textsurface = myfont.render(text, True, color, background)
 
     erase = pygame.Surface(textsurface.get_size())
-    erase.fill((100,100,100))
+    erase.fill((150,150,150))
 
     if pos[0] > SCREEN.get_size()[0]:
         pos = SCREEN.get_size()[0] - textsurface.get_size()[0], pos[1]
@@ -313,7 +313,8 @@ async def main_game():
         bombs_group.draw(SCREEN)
 
         #Highscores Board
-        if 'step' in state and state['step'] >= TIMEOUT or\
+        if ('lives' in state and state['lives'] == 0) or\
+            ('step' in state and state['step'] >= TIMEOUT) or\
             ('bomberman' in state and 'exit' in state and state['bomberman'] == state['exit']):
             highscores = newgame_json["highscores"]
             draw_info(SCREEN, "THE 10 BEST PLAYERS", scale((5,2)), COLORS['white'], BACKGROUND)

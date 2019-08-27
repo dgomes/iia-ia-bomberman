@@ -13,7 +13,7 @@ class Tiles(IntEnum):
 
 
 class Map:
-    def __init__(self, level=1, enemies=0, size=(50, 20), mapa=None):
+    def __init__(self, level=1, enemies=5, size=(50, 30), mapa=None):
         self._level = level
         self._size = size
         self.hor_tiles = size[0]
@@ -24,18 +24,20 @@ class Map:
         if not mapa:
             logger.info("Generating a MAP")
             self.map = [[Tiles.PASSAGE] * self.ver_tiles for i in range(self.hor_tiles)]
-            while len(self._walls) < 2: #minimum of 2 walls
+            while len(self._walls) < 2 and len(self._enemies_spawn) < enemies: #minimum of 2 walls
                 for x in range(self.hor_tiles):
                     for y in range(self.ver_tiles):
                         if x in [0, self.hor_tiles-1] or y in [0, self.ver_tiles-1]:
                             self.map[x][y] = Tiles.STONE
+                        elif x%2 == 0 and y%2 == 0:
+                                self.map[x][y] = Tiles.STONE
                         elif x > 2 and y > 2: #give bomberman some room
-                            if random.randint(0,10) > 8:
+                            if random.randint(0,100) > 80/level:
                                 self.map[x][y] = Tiles.WALL
                                 self._walls.append((x, y))
-                            elif x > self.hor_tiles/10 and y > self.ver_tiles/10 and random.randint(0,10) > 8 and len(self._enemies_spawn) < enemies:
+                            elif random.randint(0,100) > 99 and len(self._enemies_spawn) < enemies:
                                 self._enemies_spawn.append((x, y))
-                    
+            
             self.exit_door = random.choice(self._walls)
             self.powerup = random.choice([w for w in self._walls if w != self.exit_door]) #hide powerups behind walls only
 

@@ -65,7 +65,7 @@ class Game:
         self._score = 0
         self._state = {}
         self._initial_lives = lives
-        self.map = Map(enemies=5) #TODO
+        self.map = Map(enemies=5) #TODO according to level spawn different enemies
         self._enemies = [Balloom(p) for p in self.map.enemies_spawn]
         
         self._highscores = [] 
@@ -217,9 +217,8 @@ class Game:
         self.explode_bomb()  
         self.update_bomberman()
 
-#   TODO: move enemies
-#         for enemy in self._enemies:
-#            enemy.update(self._state, self._enemies)
+        for enemy in self._enemies:
+            enemy.move(self.map)
 
         self.collision()
         self._state = {"step": self._step,
