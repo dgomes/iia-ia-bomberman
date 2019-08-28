@@ -13,7 +13,7 @@ class Tiles(IntEnum):
 
 
 class Map:
-    def __init__(self, level=1, enemies=5, size=(50, 30), mapa=None):
+    def __init__(self, level=1, enemies=8, size=(50, 30), mapa=None):
         self._level = level
         self._size = size
         self.hor_tiles = size[0]
@@ -83,15 +83,15 @@ class Map:
         x, y = pos
         return self.map[x][y]
 
-    def is_blocked(self, pos):
+    def is_blocked(self, pos, wallpass=False):
         x, y = pos
         if x not in range(self.hor_tiles) or y not in range(self.ver_tiles):
             return True
-        if self.map[x][y] in [Tiles.STONE] or (x, y) in self._walls:
+        if self.map[x][y] in [Tiles.STONE] or (not wallpass and (x, y) in self._walls):
             return True
         return False
 
-    def calc_pos(self, cur, direction):
+    def calc_pos(self, cur, direction, wallpass=False):
         assert direction in "wasd" or direction == ""
 
         cx, cy = cur
@@ -106,7 +106,7 @@ class Map:
             npos = cx+1, cy
 
         #test blocked
-        if self.is_blocked(npos):
+        if self.is_blocked(npos, wallpass=wallpass):
             return cur
    
         return npos
