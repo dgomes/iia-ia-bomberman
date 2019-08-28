@@ -104,7 +104,7 @@ class BomberMan(Artifact):
 class Enemy(Artifact):
     def __init__(self, *args, **kw):
         self.direction = "left"
-        self.name = kw.pop("name") #TODO multiple enemies
+        self.name = kw.pop("name")
         self.sprite = (SPRITES, (0,0), (*ENEMIES[self.name][self.direction], *scale((1,1))))
         super().__init__(*args, **kw)
    

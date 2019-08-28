@@ -24,11 +24,12 @@ LEVEL_ENEMIES = {
                 }
 
 class Bomb:
-    def __init__(self, pos, radius, detonator=False):
+    def __init__(self, pos, mapa, radius, detonator=False):
         self._pos = pos
         self._timeout = radius+1 #TODO fine tune
         self._radius = radius
         self._detonator = detonator
+        self._map = mapa
 
     def detonate(self):
         if self._detonator:
@@ -60,6 +61,7 @@ class Bomb:
         else:
             gx, gy = character
 
+        #TODO use stones as shields
         return (px == gx or py == gy) and\
             (abs(px - gx) + abs(py - gy)) <= self._radius #we share a line/column and we are at distance d
     
@@ -158,7 +160,7 @@ class Game:
             if self._lastkeypress.isupper():
                 #Parse action
                 if self._lastkeypress == 'B' and len(self._bombs) < self._bomberman.powers.count(Powerups.Bombs) + 1:
-                    self._bombs.append(Bomb(self._bomberman.pos, MIN_BOMB_RADIUS+self._bomberman.flames())) # must be dependent of powerup
+                    self._bombs.append(Bomb(self._bomberman.pos, self.map, MIN_BOMB_RADIUS+self._bomberman.flames())) # must be dependent of powerup
             else:
                 #Update position
                 new_pos = self.map.calc_pos(self._bomberman.pos, self._lastkeypress) #don't bump into stones/walls
