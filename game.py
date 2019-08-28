@@ -5,8 +5,8 @@ import json
 import logging
 from consts import Powerups
 
-from map import Map, Tiles
-from characters import Bomberman, Balloom, Character
+from mapa import Map, Tiles
+from characters import Bomberman, Balloom, Oneal, Character
 
 logger = logging.getLogger('Game')
 logger.setLevel(logging.DEBUG)
@@ -18,10 +18,15 @@ MAX_HIGHSCORES = 10
 GAME_SPEED = 10
 MIN_BOMB_RADIUS = 3
 
+LEVEL_ENEMIES = {
+                 1: [Balloom]*2,
+                 2: [Balloom]*1 + [Oneal]*1,
+                }
+
 class Bomb:
     def __init__(self, pos, radius, detonator=False):
         self._pos = pos
-        self._timeout = radius+1
+        self._timeout = radius+1 #TODO fine tune
         self._radius = radius
         self._detonator = detonator
 
@@ -42,7 +47,8 @@ class Bomb:
         return self._radius
 
     def update(self):
-        self._timeout-=1/2
+        if not self._detonator:
+            self._timeout-=1/2
 
     def exploded(self):
         return not self._timeout > 0
@@ -54,9 +60,8 @@ class Bomb:
         else:
             gx, gy = character
 
-
         return (px == gx or py == gy) and\
-            (abs(px - gx) + abs(py - gy)) <= self._radius #we share a line/column and we are in distance d
+            (abs(px - gx) + abs(py - gy)) <= self._radius #we share a line/column and we are at distance d
     
     def __repr__(self):
         return self._pos
@@ -64,25 +69,23 @@ class Bomb:
 
 class Game:
     def __init__(self, level=1, lives=LIVES, timeout=TIMEOUT):
-        logger.info("Game({}, {})".format(level, lives))
+        logger.info(f"Game({level}, {lives})")
         self._running = False
         self._timeout = timeout
         self._score = 0
         self._state = {}
         self._initial_lives = lives
-        self.map = Map(enemies=5) #TODO according to level spawn different enemies
-        self._enemies = [Balloom(p) for p in self.map.enemies_spawn]
-        
+        self.map = Map()
+        self._enemies = []
+
         self._highscores = [] 
         if os.path.isfile(f"{level}.score"):
             with open(f"{level}.score", 'r') as infile:
                 self._highscores = json.load(infile)
 
     def info(self):
-        return json.dumps({"level": self.map.level,
-                           "size": self.map.size,
+        return json.dumps({"size": self.map.size,
                            "map": self.map.map,
-                           "enemies": [{'name': str(e), 'pos': e.pos} for e in self._enemies],
                            "fps": GAME_SPEED,
                            "timeout": TIMEOUT,
                            "lives": LIVES,
@@ -106,8 +109,23 @@ class Game:
         logger.debug("Reset world")
         self._player_name = player_name
         self._running = True
-        
-        self.map = Map()
+        self._score = INITIAL_SCORE 
+
+        self.next_level(1)
+
+    def stop(self):
+        logger.info("GAME OVER")
+        self.save_highscores()
+        self._running = False
+    
+    def next_level(self, level):
+        if level > len(LEVEL_ENEMIES):
+            logger.info("You WIN!")
+            self.stop()
+            return
+
+        logger.info("NEXT LEVEL")
+        self.map = Map(level=level, enemies=len(LEVEL_ENEMIES[level]))
         self._step = 0
         self._bomberman = Bomberman(self.map.bomberman_spawn, self._initial_lives)
         self._bombs = []
@@ -115,13 +133,8 @@ class Game:
         self._bonus = []
         self._exit = []
         self._lastkeypress = "" 
-        self._score = INITIAL_SCORE 
         self._bomb_radius = 3
-
-    def stop(self):
-        logger.info("GAME OVER")
-        self.save_highscores()
-        self._running = False
+        self._enemies = [t(p) for t, p in zip(LEVEL_ENEMIES[level], self.map.enemies_spawn)]
 
     def quit(self):
         logger.debug("Quit")
@@ -162,8 +175,9 @@ class Game:
             self._lastkeypress = "" #remove inertia
 
         if len(self._enemies) == 0 and self._bomberman.pos == self._exit:
-            logger.info("Level completed")
-            self.stop()
+            logger.info(f"Level {self.map.level} completed")
+            self._score += (self._timeout - self._step)
+            self.next_level(self.map.level+1)
 
     def kill_bomberman(self):
         logger.info("bomberman has died on step: {}".format(self._step))
@@ -179,6 +193,7 @@ class Game:
         for e in self._enemies:
             if e.pos == self._bomberman.pos:
                 self.kill_bomberman()
+                e.respawn()
 
     def explode_bomb(self):
         for bomb in self._bombs[:]:
@@ -226,7 +241,8 @@ class Game:
             enemy.move(self.map)
 
         self.collision()
-        self._state = {"step": self._step,
+        self._state = {"level": self.map.level,
+                       "step": self._step,
                        "timeout": self._timeout,
                        "player": self._player_name,
                        "score": self._score,
