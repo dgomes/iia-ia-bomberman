@@ -1,11 +1,27 @@
 # iia-ia-bomberman
 Bomberman clone for AI teaching
 
+## How to install
+
+Make sure you are running Python 3.7.
+
+`$ pip install -r requirements.txt`
+
+*Tip: you might want to create a virtualenv first*
+
 ## How to play
 
-https://strategywiki.org/wiki/Bomberman/How_to_play
+open 3 terminals:
 
-## Debug
+`$ python3 server.py`
+
+`$ python3 viewer.py`
+
+`$ python3 client.py`
+
+to play using the sample client make sure the client pygame hidden window has focus
+
+## Debug Installation
 
 Make sure pygame is properly installed:
 
