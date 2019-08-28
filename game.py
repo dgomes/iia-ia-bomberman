@@ -23,6 +23,7 @@ class Bomb:
         self._pos = pos
         self._timeout = radius+1
         self._radius = radius
+        self._detonator = detonator
 
     def detonate(self):
         if self._detonator:
