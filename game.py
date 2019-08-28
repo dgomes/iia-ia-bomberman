@@ -24,6 +24,10 @@ class Bomb:
         self._timeout = radius+1
         self._radius = radius
 
+    def detonate(self):
+        if self._detonator:
+            self._timeout = 0
+
     @property
     def pos(self):
         return self._pos
