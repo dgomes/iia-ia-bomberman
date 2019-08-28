@@ -109,5 +109,12 @@ class Oneal(Enemy):
     def __init__(self, pos):
         super().__init__(pos, self.__class__.__name__,
             200, Speed.NORMAL, 2, False)
+        self.lastdir = 0
 
+    def move(self, mapa):
+        if self.ready():
+            new_pos = mapa.calc_pos(self.pos, self.dir[self.lastdir]) #don't bump into stones/walls      
+            if new_pos == self.pos:
+                self.lastdir = (self.lastdir + 1) % len(self.dir)
+            self.pos = new_pos
   
