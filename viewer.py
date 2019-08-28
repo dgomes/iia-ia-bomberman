@@ -9,7 +9,7 @@ import websockets
 import logging
 import argparse
 import time
-from map import Map, Tiles
+from mapa import Map, Tiles
 
 logging.basicConfig(level=logging.DEBUG)
 logger_websockets = logging.getLogger('websockets')
@@ -20,7 +20,8 @@ logger.setLevel(logging.DEBUG)
 
 BOMBERMAN = {'up': (3*16, 1*16), 'left': (0, 0), 'down': (3*16, 0), 'right': (0, 1*16)}
 BALLOOM = {'up': (0, 15*16), 'left': (16, 15*16), 'down': (2*16, 15*16), 'right': (3, 15*16)}
-ENEMIES = {'Balloom': BALLOOM}
+ONEAL = {'up': (0, 16*16), 'left': (16, 16*16), 'down': (2*16, 16*16), 'right': (3, 16*16)}
+ENEMIES = {'Balloom': BALLOOM, 'Oneal': ONEAL}
 POWERUPS = {'Bombs': (0, 14*16), 'Flames': (1*16, 14*16)}
 STONE = (48, 48)
 WALL = (64, 48)
@@ -237,7 +238,7 @@ async def main_game():
     newgame_json = json.loads(state)
 
     GAME_SPEED = newgame_json["fps"]
-    mapa = Map(level = newgame_json['level'], size = newgame_json['size'], mapa = newgame_json['map'])
+    mapa = Map(size = newgame_json['size'], mapa = newgame_json['map'])
     TIMEOUT = newgame_json['timeout']
     SCREEN = pygame.display.set_mode(scale(mapa.size))
     SPRITES = pygame.image.load("data/nes.png").convert_alpha()
@@ -246,11 +247,7 @@ async def main_game():
     SCREEN.blit(BACKGROUND, (0, 0))
     main_group.add(BomberMan(pos=mapa.bomberman_spawn))
 
-    for enemy in newgame_json['enemies']:
-        enemies_group.add(Enemy(name=enemy['name'], pos=enemy['pos']))
-    
     state = {"score": 0, "player": "player1", "bomberman": (1, 1)}
-    start_time = time.process_time()
 
     while True:
         pygame.event.pump()
@@ -261,7 +258,7 @@ async def main_game():
         bombs_group.clear(SCREEN, BACKGROUND)
         enemies_group.clear(SCREEN, clear_callback)
         
-        if "score" in state:
+        if "score" in state and "player" in state:
             text = str(state["score"])
             draw_info(SCREEN, text.zfill(6), (0,0))
             text = str(state["player"]).rjust(32)
@@ -335,8 +332,20 @@ async def main_game():
         
         try:
             state = json.loads(q.get_nowait())
-            if "refresh" in state:
-                return
+
+            if 'step' in state and state['step'] == 1 \
+                or 'level' in state and state['level'] != mapa.level:
+                
+                # New level! lets clean everything up!
+                SCREEN.blit(BACKGROUND, (0, 0))
+
+                walls_group.empty()
+                main_group.empty()
+                enemies_group.empty()
+                bombs_group.empty()
+                main_group.add(BomberMan(pos=mapa.bomberman_spawn))
+                mapa.level = state['level']
+            
         except asyncio.queues.QueueEmpty:
             await asyncio.sleep(1./GAME_SPEED)
             continue 
