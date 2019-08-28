@@ -105,3 +105,4 @@ venv.bak/
 
 #bomberman files
 *.score
+.DS_Store
