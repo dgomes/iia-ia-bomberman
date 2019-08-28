@@ -19,9 +19,8 @@ logger.setLevel(logging.INFO)
 Player = namedtuple('Player', ['name', 'ws']) 
 
 class Game_server:
-    def __init__(self, level, lives, timeout, grading=None):
-        self.game = Game(level, lives, timeout)
-        self.game_properties = {'level': level}
+    def __init__(self, lives, timeout, grading=None):
+        self.game = Game(1, lives, timeout)
         self.players = asyncio.Queue()
         self.viewers = set()
         self.current_player = None 
@@ -50,7 +49,7 @@ class Game_server:
                         self.game.keypress("")
 
         except websockets.exceptions.ConnectionClosed as c:
-            logger.info("Client disconnected")
+            logger.info(f"Client disconnected: {c}")
             if websocket in self.viewers:
                 self.viewers.remove(websocket)
 
@@ -67,12 +66,10 @@ class Game_server:
                 logger.info("Starting game for <{}>".format(self.current_player.name))
                 self.game.start(self.current_player.name)
                 if self.viewers:
-                    # need to update map in viewers #TODO avoid refresh message
-                    await asyncio.wait([client.send(json.dumps({"refresh": 1})) for client in self.viewers])
                     await asyncio.wait([client.send(self.game.info()) for client in self.viewers])
 
                 if self.grading:
-                    game_rec = dict(self.game_properties)
+                    game_rec = dict()
                     game_rec['player'] = self.current_player.name
             
                 while self.game.running:
@@ -83,11 +80,12 @@ class Game_server:
                 await self.current_player.ws.send(json.dumps({"score": self.game.score}))
 
                 logger.info("Disconnecting <{}>".format(self.current_player.name))
-            except websockets.exceptions.ConnectionClosed as c:
+            except websockets.exceptions.ConnectionClosed:
                 self.current_player = None
             finally:
                 if self.grading:
                    game_rec['score'] = self.game.score
+                   game_rec['level'] = self.game.map.level
                    r = requests.post(self.grading, json=game_rec)
                 if self.current_player:
                     await self.current_player.ws.close()
@@ -97,13 +95,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--bind", help="IP address to bind to", default="")
     parser.add_argument("--port", help="TCP port", type=int, default=8000)
-    parser.add_argument("--level", help="Level", choices=['0','1','2','3'], default='0')
     parser.add_argument("--lives", help="Number of lives", type=int, default=3)
     parser.add_argument("--timeout", help="Timeout after this amount of steps", type=int, default=3000)
     parser.add_argument("--grading-server", help="url of grading server", default=None)
     args = parser.parse_args()
 
-    g = Game_server(int(args.level), args.lives, args.timeout, args.grading_server)
+    g = Game_server(args.lives, args.timeout, args.grading_server)
 
     game_loop_task = asyncio.ensure_future(g.mainloop())
 
