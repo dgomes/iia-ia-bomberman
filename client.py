@@ -20,6 +20,10 @@ async def agent_loop(server_address = "localhost:8000", agent_name="student"):
          
         mapa = Map(size = game_properties['size'], mapa = game_properties['map'])
 
+        SCREEN = pygame.display.set_mode((299, 123))
+        SPRITES = pygame.image.load("data/pad.png").convert_alpha()
+
+        SCREEN.blit(SPRITES, (0, 0))
         while True:
             try:
                 state = json.loads(await websocket.recv()) #receive game state
@@ -48,6 +52,9 @@ async def agent_loop(server_address = "localhost:8000", agent_name="student"):
             except websockets.exceptions.ConnectionClosedOK:
                 print("Server has cleanly disconnected us")
                 return
+
+            pygame.display.flip()
+
 
 loop = asyncio.get_event_loop()
 SERVER = os.environ.get('SERVER', 'localhost')
