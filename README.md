@@ -26,3 +26,7 @@ to play using the sample client make sure the client pygame hidden window has fo
 Make sure pygame is properly installed:
 
 python -m pygame.examples.aliens
+
+# Tested on:
+- Ubuntu 18.04
+- OSX 10.14.6
