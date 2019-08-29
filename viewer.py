@@ -36,7 +36,7 @@ CHAR_LENGTH = 16
 CHAR_SIZE= CHAR_LENGTH, CHAR_LENGTH 
 SCALE = 1 
 
-COLORS = {'white':(255,255,255), 'red':(255,0,0), 'pink':(255,105,180), 'blue':(135,206,235), 'orange':(255,165,0), 'yellow':(255,255,0)}
+COLORS = {'white':(255,255,255), 'red':(255,0,0), 'pink':(255,105,180), 'blue':(135,206,235), 'orange':(255,165,0), 'yellow':(255,255,0), 'grey': (120,120,120)}
 BACKGROUND = (0, 0, 0)
 RANKS = {1:"1ST", 2:"2ND", 3:"3RD", 4:"4TH", 5:"5TH", 6:"6TH", 7:"7TH", 8:"8TH", 9:"9TH", 10:"10TH"}
 
@@ -205,20 +205,24 @@ def draw_background(mapa):
                 background.blit(SPRITES, (wx, wy), (*PASSAGE, *scale((1,1,))))
     return background
         
-def draw_info(SCREEN, text, pos, color=(0,0,0), background=None): #TODO rewrite
+def draw_info(SCREEN, text, pos, color=(0,0,0), background=None):
     myfont = pygame.font.Font(None, int(22/SCALE))
     textsurface = myfont.render(text, True, color, background)
 
-    erase = pygame.Surface(textsurface.get_size())
-    erase.fill((150,150,150))
+    x, y = pos
+    if x > SCREEN.get_width():
+        pos = SCREEN.get_width() - textsurface.get_width(), y
+    if y > SCREEN.get_height():
+        pos = x, SCREEN.get_height() - textsurface.get_height()
 
-    if pos[0] > SCREEN.get_size()[0]:
-        pos = SCREEN.get_size()[0] - textsurface.get_size()[0], pos[1]
-    if pos[1] > SCREEN.get_size()[1]:
-        pos = pos[0], SCREEN.get_size()[1] - textsurface.get_size()[1]
-
-    SCREEN.blit(erase,pos)
-    SCREEN.blit(textsurface,pos)
+    if background:
+        SCREEN.blit(background, pos)
+    else:
+        erase = pygame.Surface(textsurface.get_size())
+        erase.fill(COLORS['grey'])
+        #SCREEN.blit(erase, pos)
+    
+    SCREEN.blit(textsurface, pos)
 
 async def main_loop(q):
     while True:
@@ -314,16 +318,22 @@ async def main_game():
             ('step' in state and state['step'] >= TIMEOUT) or\
             ('bomberman' in state and 'exit' in state and state['bomberman'] == state['exit']):
             highscores = newgame_json["highscores"]
-            draw_info(SCREEN, "THE 10 BEST PLAYERS", scale((5,2)), COLORS['white'], BACKGROUND)
-            draw_info(SCREEN, "RANK", scale((2,4)), COLORS['orange'], BACKGROUND)
-            draw_info(SCREEN, "SCORE", scale((6,4)), COLORS['orange'], BACKGROUND)
-            draw_info(SCREEN, "NAME", scale((11,4)), COLORS['orange'], BACKGROUND)
+
+            HIGHSCORES = pygame.Surface(scale((20,16)))
+            HIGHSCORES.fill(COLORS['grey'])
+
+            draw_info(HIGHSCORES, "THE 10 BEST PLAYERS", scale((5,1)), COLORS['white'])
+            draw_info(HIGHSCORES, "RANK", scale((2,3)), COLORS['orange'])
+            draw_info(HIGHSCORES, "SCORE", scale((6,3)), COLORS['orange'])
+            draw_info(HIGHSCORES, "NAME", scale((11,3)), COLORS['orange'])
                 
             for i, highscore in enumerate(highscores):
                 c = (i % 5) + 1
-                draw_info(SCREEN, RANKS[i+1], scale((2,i+6)), list(COLORS.values())[c], BACKGROUND)
-                draw_info(SCREEN, str(highscore[1]), scale((6,i+6)), list(COLORS.values())[c], BACKGROUND)
-                draw_info(SCREEN, highscore[0], scale((11,i+6)), list(COLORS.values())[c], BACKGROUND)
+                draw_info(HIGHSCORES, RANKS[i+1], scale((2,i+5)), list(COLORS.values())[c])
+                draw_info(HIGHSCORES, str(highscore[1]), scale((6,i+5)), list(COLORS.values())[c])
+                draw_info(HIGHSCORES, highscore[0], scale((11,i+5)), list(COLORS.values())[c])
+
+            SCREEN.blit(HIGHSCORES, ((SCREEN.get_width()-HIGHSCORES.get_width())/2,(SCREEN.get_height()-HIGHSCORES.get_height())/2))
 
         if 'bomberman' in state:
             main_group.update(state['bomberman'])

@@ -22,8 +22,8 @@ async def agent_loop(server_address = "localhost:8000", agent_name="student"):
 
         SCREEN = pygame.display.set_mode((299, 123))
         SPRITES = pygame.image.load("data/pad.png").convert_alpha()
-
         SCREEN.blit(SPRITES, (0, 0))
+
         while True:
             try:
                 state = json.loads(await websocket.recv()) #receive game state
