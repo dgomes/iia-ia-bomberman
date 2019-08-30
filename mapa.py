@@ -11,6 +11,7 @@ class Tiles(IntEnum):
     STONE = 1
     WALL = 2
 
+VITAL_SPACE = 3
 
 class Map:
     def __init__(self, level=1, enemies=8, size=(51, 31), mapa=None):
@@ -30,15 +31,15 @@ class Map:
                         self.map[x][y] = Tiles.STONE
                     elif x%2 == 0 and y%2 == 0:
                             self.map[x][y] = Tiles.STONE
-                    elif x > 2 and y > 2: #give bomberman some room
-                        if random.randint(0,100) > 80/level:
+                    elif x >= VITAL_SPACE and y >= VITAL_SPACE: #give bomberman some room
+                        if random.randint(0,100) > 50 + 25/level:
                             self.map[x][y] = Tiles.WALL
                             self._walls.append((x, y))
             
             for _ in range(enemies):
                 x, y = 0, 0
-                while self.map[x][y] in [Tiles.STONE, Tiles.WALL]:
-                    x, y = random.randrange(self.hor_tiles), random.randrange(self.ver_tiles)
+                while self.map[x][y] in [Tiles.STONE, Tiles.WALL]: #find empty spots to place enemies
+                    x, y = random.randrange(VITAL_SPACE, self.hor_tiles), random.randrange(VITAL_SPACE, self.ver_tiles)
                 self._enemies_spawn.append((x, y))
 
             self.exit_door = random.choice(self._walls)
