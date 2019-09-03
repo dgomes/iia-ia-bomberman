@@ -4,6 +4,7 @@ import json
 import asyncio
 import websockets
 import pygame
+import getpass
 import os
 from mapa import Map
 
@@ -59,5 +60,5 @@ async def agent_loop(server_address = "localhost:8000", agent_name="student"):
 loop = asyncio.get_event_loop()
 SERVER = os.environ.get('SERVER', 'localhost')
 PORT = os.environ.get('PORT', '8000')
-NAME = os.environ.get('NAME', 'student')
+NAME = os.environ.get('NAME', getpass.getuser())
 loop.run_until_complete(agent_loop("{}:{}".format(SERVER,PORT), NAME))

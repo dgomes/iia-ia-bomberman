@@ -3,8 +3,10 @@ import os
 import asyncio
 import json
 import logging
-from consts import Powerups
 
+import requests
+
+from consts import Powerups
 from mapa import Map, Tiles
 from characters import Bomberman, Balloom, Oneal, Character
 
@@ -146,6 +148,11 @@ class Game:
         #update highscores
         logger.debug("Save highscores")
         logger.info("FINAL SCORE <%s>: %s", self._player_name, self.score)
+        try: 
+            r = requests.post('http://bomberman-aulas.5g.cn.atnog.av.it.pt/game', json = {'player': self._player_name, 'level': self.map.level, 'score': self.score})
+        except:
+            logger.warn("Could not save score to server")
+            
         self._highscores.append((self._player_name, self.score))
         self._highscores = sorted(self._highscores, key=lambda s: -1*s[1])[:MAX_HIGHSCORES]
     

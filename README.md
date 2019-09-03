@@ -21,6 +21,12 @@ open 3 terminals:
 
 to play using the sample client make sure the client pygame hidden window has focus
 
+### Keys
+
+Directions: arrows
+*A*: 'z' - detonates (only after picking up the detonator powerup)
+*B*: 'x' - drops bomb
+
 ## Debug Installation
 
 Make sure pygame is properly installed:
