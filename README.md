@@ -30,3 +30,5 @@ python -m pygame.examples.aliens
 # Tested on:
 - Ubuntu 18.04
 - OSX 10.14.6
+- Windows 10.0.18362
+
