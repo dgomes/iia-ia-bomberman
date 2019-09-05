@@ -32,7 +32,7 @@ class Map:
                     elif x%2 == 0 and y%2 == 0:
                             self.map[x][y] = Tiles.STONE
                     elif x >= VITAL_SPACE and y >= VITAL_SPACE: #give bomberman some room
-                        if random.randint(0,100) > 50 + 25/level:
+                        if random.randint(0,100) > 70 + 25/level:
                             self.map[x][y] = Tiles.WALL
                             self._walls.append((x, y))
             
