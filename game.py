@@ -1,14 +1,14 @@
-import math
-import os
 import asyncio
 import json
 import logging
+import math
+import os
 
 import requests
 
+from characters import Balloom, Bomberman, Character, Doll, Minvo, Oneal
 from consts import Powerups
 from mapa import Map, Tiles
-from characters import Bomberman, Balloom, Oneal, Doll, Minvo, Character
 
 logger = logging.getLogger('Game')
 logger.setLevel(logging.DEBUG)
@@ -68,16 +68,27 @@ class Bomb:
         return not self._timeout > 0
 
     def in_range(self, character):
-        px, py = self._pos
+        bx, by = self._pos
         if isinstance(character, Character):
-            gx, gy = character.pos
+            cx, cy = character.pos
         else:
-            gx, gy = character
+            cx, cy = character
 
-        #TODO use stones as shields
-        return (px == gx or py == gy) and\
-            (abs(px - gx) + abs(py - gy)) <= self._radius #we share a line/column and we are at distance d
-    
+        if by == cy:
+            for r in range(self._radius+1):
+                if self._map.is_stone((bx + r, by)):
+                    break #protected by stone
+                if (cx, cy) == (bx + r, by) or (cx, cy) == (bx - r, by):
+                    return True
+        if bx == cx:
+            for r in range(self._radius+1):
+                if self._map.is_stone((bx, by + r)):
+                    break #protected by stone
+                if (cx, cy) == (bx, by + r) or (cx, cy) == (bx, by - r):
+                    return True
+        
+        return False
+
     def __repr__(self):
         return self._pos
 

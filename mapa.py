@@ -105,6 +105,10 @@ class Map:
             return True
         return False
 
+    def is_stone(self, pos):
+        x, y = pos
+        return self.map[x][y] in [Tiles.STONE]
+
     def calc_pos(self, cur, direction, wallpass=False):
         assert direction in "wasd" or direction == ""
 
