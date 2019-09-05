@@ -97,9 +97,7 @@ class Enemy(Character):
 
     def move(self, mapa, bomberman, bombs):
         if not self.ready():
-            print("Not ready")
             return
-        print("Ready")
 
         if self._smart == Smart.LOW:
             new_pos = mapa.calc_pos(self.pos, self.dir[self.lastdir]) #don't bump into stones/walls      
