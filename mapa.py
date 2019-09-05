@@ -41,6 +41,11 @@ class Map:
                 while self.map[x][y] in [Tiles.STONE, Tiles.WALL]: #find empty spots to place enemies
                     x, y = random.randrange(VITAL_SPACE, self.hor_tiles), random.randrange(VITAL_SPACE, self.ver_tiles)
                 self._enemies_spawn.append((x, y))
+                # create a vital space for enemies:
+                for rx, ry in [(x, y) for x in [-1,0,1] for y in [-1,0,1]]: 
+                    if self.map[x+rx][y+ry] in [Tiles.WALL]:
+                        self.map[x+rx][y+ry] = Tiles.PASSAGE
+                        self._walls.remove((x+rx, y+ry))
 
             self.exit_door = random.choice(self._walls)
             self.powerup = random.choice([w for w in self._walls if w != self.exit_door]) #hide powerups behind walls only
