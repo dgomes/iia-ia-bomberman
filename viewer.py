@@ -19,9 +19,11 @@ logger = logging.getLogger('Map')
 logger.setLevel(logging.DEBUG)
 
 BOMBERMAN = {'up': (3*16, 1*16), 'left': (0, 0), 'down': (3*16, 0), 'right': (0, 1*16)}
-BALLOOM = {'up': (0, 15*16), 'left': (16, 15*16), 'down': (2*16, 15*16), 'right': (3, 15*16)}
-ONEAL = {'up': (0, 16*16), 'left': (16, 16*16), 'down': (2*16, 16*16), 'right': (3, 16*16)}
-ENEMIES = {'Balloom': BALLOOM, 'Oneal': ONEAL}
+BALLOOM = {'up': (0, 15*16), 'left': (16, 15*16), 'down': (2*16, 15*16), 'right': (3*16, 15*16)}
+ONEAL = {'up': (0, 16*16), 'left': (16, 16*16), 'down': (2*16, 16*16), 'right': (3*16, 16*16)}
+DOLL = {'up': (0, 17*16), 'left': (16, 17*16), 'down': (2*16, 17*16), 'right': (3*16, 17*16)}
+MINVO = {'up': (0, 18*16), 'left': (16, 18*16), 'down': (2*16, 18*16), 'right': (3*16, 18*16)}
+ENEMIES = {'Balloom': BALLOOM, 'Oneal': ONEAL, 'Doll': DOLL, 'Minvo': MINVO}
 POWERUPS = {'Bombs': (0, 14*16), 'Flames': (1*16, 14*16)}
 STONE = (48, 48)
 WALL = (64, 48)
