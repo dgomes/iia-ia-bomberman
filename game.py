@@ -30,6 +30,10 @@ LEVEL_ENEMIES = {
 
 LEVEL_POWERUPS = {
                   1: Powerups.Flames,
+                  2: Powerups.Bombs,
+                  3: Powerups.Detonator,
+                  4: Powerups.Speed,
+                  5: Powerups.Bombs
 }
 
 class Bomb:
@@ -250,8 +254,9 @@ class Game:
         self.explode_bomb()  
         self.update_bomberman()
 
-        for enemy in self._enemies:
-            enemy.move(self.map, self._bomberman, self._bombs)
+        if self._step % (self._bomberman.powers.count(Powerups.Speed)+1) == 0: #increase speed of bomberman by moving enemies less often
+            for enemy in self._enemies:
+                enemy.move(self.map, self._bomberman, self._bombs)
 
         self.collision()
         self._state = {"level": self.map.level,
