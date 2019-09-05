@@ -378,7 +378,7 @@ if __name__ == "__main__":
     pygame.font.init()
     q = asyncio.Queue()
     
-    ws_path = 'ws://{}:{}/viewer'.format(args.server, args.port)
+    ws_path = f'ws://{args.server}:{args.port}/viewer'
 
     try:
         LOOP.run_until_complete(asyncio.gather(messages_handler(ws_path, q), main_loop(q)))

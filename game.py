@@ -193,7 +193,7 @@ class Game:
             self.next_level(self.map.level+1)
 
     def kill_bomberman(self):
-        logger.info("bomberman has died on step: {}".format(self._step))
+        logger.info(f"bomberman has died on step: {self._step}")
         self._bomberman.kill()
         logger.debug(f"bomberman has now {self._bomberman.lives} lives")
         if self._bomberman.lives > 0:
@@ -245,7 +245,7 @@ class Game:
             self.stop()
 
         if self._step % 100 == 0:
-            logger.debug("[{}] SCORE {} - LIVES {}".format(self._step, self._score, self._bomberman.lives))
+            logger.debug(f"[{self._step}] SCORE {self._score} - LIVES {self._bomberman.lives}")
 
         self.explode_bomb()  
         self.update_bomberman()

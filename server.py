@@ -59,11 +59,11 @@ class Game_server:
             self.current_player = await self.players.get()
             
             if self.current_player.ws.closed:
-                logger.error("<{}> disconnect while waiting".format(self.current_player.name))
+                logger.error(f"<{self.current_player.name}> disconnect while waiting")
                 continue
            
             try:
-                logger.info("Starting game for <{}>".format(self.current_player.name))
+                logger.info(f"Starting game for <{self.current_player.name}>")
                 self.game.start(self.current_player.name)
                 if self.viewers:
                     await asyncio.wait([client.send(self.game.info()) for client in self.viewers])
@@ -79,7 +79,7 @@ class Game_server:
                         await asyncio.wait([client.send(self.game.state) for client in self.viewers])
                 await self.current_player.ws.send(json.dumps({"score": self.game.score}))
 
-                logger.info("Disconnecting <{}>".format(self.current_player.name))
+                logger.info(f"Disconnecting <{self.current_player.name}>")
             except websockets.exceptions.ConnectionClosed:
                 self.current_player = None
             finally:

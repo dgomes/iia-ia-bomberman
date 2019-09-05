@@ -12,7 +12,7 @@ import pygame
 pygame.init()
 
 async def agent_loop(server_address = "localhost:8000", agent_name="student"):
-    async with websockets.connect("ws://{}/player".format(server_address)) as websocket:
+    async with websockets.connect(f"ws://{server_address}/player") as websocket:
 
         # Receive information about static game properties 
         await websocket.send(json.dumps({"cmd": "join", "name": agent_name}))
