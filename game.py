@@ -8,7 +8,7 @@ import requests
 
 from consts import Powerups
 from mapa import Map, Tiles
-from characters import Bomberman, Balloom, Oneal, Character
+from characters import Bomberman, Balloom, Oneal, Doll, Minvo, Character
 
 logger = logging.getLogger('Game')
 logger.setLevel(logging.DEBUG)
@@ -21,9 +21,16 @@ GAME_SPEED = 10
 MIN_BOMB_RADIUS = 3
 
 LEVEL_ENEMIES = {
-                 1: [Balloom]*2,
-                 2: [Balloom]*1 + [Oneal]*1,
+                 1: [Balloom]*6,
+                 2: [Balloom]*3 + [Oneal]*3,
+                 3: [Balloom]*2 + [Oneal]*2 + [Doll]*2,
+                 4: [Balloom] + [Oneal] + [Doll]*2 + [Minvo]*2,
+                 5: [Oneal]*4 + [Doll]*3,
                 }
+
+LEVEL_POWERUPS = {
+                  1: Powerups.Flames,
+}
 
 class Bomb:
     def __init__(self, pos, mapa, radius, detonator=False):
@@ -73,7 +80,8 @@ class Bomb:
 
 class Game:
     def __init__(self, level=1, lives=LIVES, timeout=TIMEOUT):
-        logger.info(f"Game({level}, {lives})")
+        logger.info(f"Game(level={level}, lives={lives})")
+        self.initial_level = level
         self._running = False
         self._timeout = timeout
         self._score = 0
@@ -115,7 +123,7 @@ class Game:
         self._running = True
         self._score = INITIAL_SCORE 
 
-        self.next_level(1)
+        self.next_level(self.initial_level)
 
     def stop(self):
         logger.info("GAME OVER")
@@ -148,11 +156,7 @@ class Game:
         #update highscores
         logger.debug("Save highscores")
         logger.info("FINAL SCORE <%s>: %s", self._player_name, self.score)
-        try: 
-            r = requests.post('http://bomberman-aulas.5g.cn.atnog.av.it.pt/game', json = {'player': self._player_name, 'level': self.map.level, 'score': self.score})
-        except:
-            logger.warn("Could not save score to server")
-            
+
         self._highscores.append((self._player_name, self.score))
         self._highscores = sorted(self._highscores, key=lambda s: -1*s[1])[:MAX_HIGHSCORES]
     
@@ -219,7 +223,7 @@ class Game:
                         if self.map.exit_door == wall:
                             self._exit = wall
                         if self.map.powerup == wall:
-                            self._powerups.append((wall, Powerups.Flames))
+                            self._powerups.append((wall, LEVEL_POWERUPS[self.map.level]))
 
                 for enemy in self._enemies[:]:
                     if bomb.in_range(enemy):
@@ -247,7 +251,7 @@ class Game:
         self.update_bomberman()
 
         for enemy in self._enemies:
-            enemy.move(self.map)
+            enemy.move(self.map, self._bomberman, self._bombs)
 
         self.collision()
         self._state = {"level": self.map.level,
