@@ -16,7 +16,6 @@ logger.setLevel(logging.DEBUG)
 LIVES = 3
 INITIAL_SCORE = 0
 TIMEOUT = 3000 
-MAX_HIGHSCORES = 10
 GAME_SPEED = 10
 MIN_BOMB_RADIUS = 3
 
@@ -105,20 +104,16 @@ class Game:
         self.map = Map()
         self._enemies = []
 
-        self._highscores = [] 
-        if os.path.isfile(f"{level}.score"):
-            with open(f"{level}.score", 'r') as infile:
-                self._highscores = json.load(infile)
+
 
     def info(self):
-        return json.dumps({"size": self.map.size,
+        return {"size": self.map.size,
                            "map": self.map.map,
                            "fps": GAME_SPEED,
                            "timeout": TIMEOUT,
                            "lives": LIVES,
                            "score": self.score,
-                           "highscores": self.highscores,
-                            })
+                            }
 
     @property
     def running(self):
@@ -127,10 +122,6 @@ class Game:
     @property
     def score(self):
         return self._score
-
-    @property
-    def highscores(self):
-        return self._highscores
 
     def start(self, player_name):
         logger.debug("Reset world")
@@ -146,7 +137,6 @@ class Game:
 
     def stop(self):
         logger.info("GAME OVER")
-        self.save_highscores()
         self._running = False
     
     def next_level(self, level):
@@ -170,17 +160,6 @@ class Game:
     def quit(self):
         logger.debug("Quit")
         self._running = False
-
-    def save_highscores(self):
-        #update highscores
-        logger.debug("Save highscores")
-        logger.info("FINAL SCORE <%s>: %s", self._player_name, self.score)
-
-        self._highscores.append((self._player_name, self.score))
-        self._highscores = sorted(self._highscores, key=lambda s: -1*s[1])[:MAX_HIGHSCORES]
-    
-        with open(f"{self.map._level}.score", 'w') as outfile:
-            json.dump(self._highscores, outfile)
 
     def keypress(self, key):
         self._lastkeypress = key

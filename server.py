@@ -18,6 +18,9 @@ logger.setLevel(logging.INFO)
 
 Player = namedtuple('Player', ['name', 'ws']) 
 
+MAX_HIGHSCORES = 10
+HIGHSCORE_FILE = "highscores.json"
+
 class Game_server:
     def __init__(self, level, lives, timeout, grading):
         self.game = Game(level, lives, timeout)
@@ -25,14 +28,32 @@ class Game_server:
         self.viewers = set()
         self.current_player = None 
         self.grading = grading
+        self.game_info = "{}"
+
+        self._highscores = [] 
+        if os.path.isfile(HIGHSCORE_FILE):
+            with open(HIGHSCORE_FILE, 'r') as infile:
+                self._highscores = json.load(infile)
+    
+    def save_highscores(self):
+        #update highscores
+        logger.debug("Save highscores")
+        logger.info("FINAL SCORE <%s>: %s", self.current_player.name, self.game.score)
+
+        self._highscores.append((self.current_player.name, self.game.score))
+        self._highscores = sorted(self._highscores, key=lambda s: -1*s[1])[:MAX_HIGHSCORES]
+    
+        with open(HIGHSCORE_FILE, 'w') as outfile:
+            json.dump(self._highscores, outfile)
 
     async def incomming_handler(self, websocket, path):
         try:
             async for message in websocket:
                 data = json.loads(message)
                 if data["cmd"] == "join":
-                    map_info = self.game.info()
-                    await websocket.send(map_info)
+                    self.game_info = self.game.info()
+                    self.game_info["highscores"] = self._highscores
+                    await websocket.send(json.dumps(self.game_info))
                     
                     if path == "/player":
                         logger.info("<%s> has joined", data["name"])
@@ -66,7 +87,7 @@ class Game_server:
                 logger.info(f"Starting game for <{self.current_player.name}>")
                 self.game.start(self.current_player.name)
                 if self.viewers:
-                    await asyncio.wait([client.send(self.game.info()) for client in self.viewers])
+                    await asyncio.wait([client.send(json.dumps(self.game_info)) for client in self.viewers])
 
                 if self.grading:
                     game_rec = dict()
@@ -77,6 +98,7 @@ class Game_server:
                     await self.current_player.ws.send(self.game.state)
                     if self.viewers:
                         await asyncio.wait([client.send(self.game.state) for client in self.viewers])
+                self.save_highscores()
                 await self.current_player.ws.send(json.dumps({"score": self.game.score}))
 
                 logger.info(f"Disconnecting <{self.current_player.name}>")
