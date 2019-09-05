@@ -1,11 +1,10 @@
-import random
 import sys
 import json
 import asyncio
 import websockets
-import pygame
 import getpass
 import os
+
 from mapa import Map
 
 #Next 2 lines are not needed for AI agent
