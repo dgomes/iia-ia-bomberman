@@ -35,7 +35,7 @@ async def agent_loop(server_address = "localhost:8000", agent_name="student"):
                 key = ""
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT or not state['lives']:
-                        sys.quit()
+                        pygame.quit()
 
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_UP:
