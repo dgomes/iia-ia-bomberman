@@ -19,8 +19,8 @@ logger.setLevel(logging.INFO)
 Player = namedtuple('Player', ['name', 'ws']) 
 
 class Game_server:
-    def __init__(self, lives, timeout, grading=None):
-        self.game = Game(1, lives, timeout)
+    def __init__(self, level, lives, timeout, grading):
+        self.game = Game(level, lives, timeout)
         self.players = asyncio.Queue()
         self.viewers = set()
         self.current_player = None 
@@ -83,10 +83,14 @@ class Game_server:
             except websockets.exceptions.ConnectionClosed:
                 self.current_player = None
             finally:
-                if self.grading:
-                   game_rec['score'] = self.game.score
-                   game_rec['level'] = self.game.map.level
-                   r = requests.post(self.grading, json=game_rec)
+                try: 
+                   if self.grading:
+                       game_rec['score'] = self.game.score
+                       game_rec['level'] = self.game.map.level
+                       requests.post(self.grading, json=game_rec)
+                except:
+                    logger.warn("Could not save score to server")
+
                 if self.current_player:
                     await self.current_player.ws.close()
 
@@ -95,12 +99,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--bind", help="IP address to bind to", default="")
     parser.add_argument("--port", help="TCP port", type=int, default=8000)
+    parser.add_argument("--level", help="start on level", type=int, default=1)
     parser.add_argument("--lives", help="Number of lives", type=int, default=3)
     parser.add_argument("--timeout", help="Timeout after this amount of steps", type=int, default=3000)
-    parser.add_argument("--grading-server", help="url of grading server", default=None)
+    parser.add_argument("--grading-server", help="url of grading server", default='http://bomberman-aulas.5g.cn.atnog.av.it.pt/game')
     args = parser.parse_args()
 
-    g = Game_server(args.lives, args.timeout, args.grading_server)
+    g = Game_server(args.level, args.lives, args.timeout, args.grading_server)
 
     game_loop_task = asyncio.ensure_future(g.mainloop())
 
