@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import IntEnum
 
-class Powerups(Enum):
+class Powerups(IntEnum):
     Bombs = 1,
     Flames = 2,
     Speed = 3,
