@@ -128,6 +128,10 @@ class Game:
         self._score = INITIAL_SCORE 
 
         self.next_level(self.initial_level)
+        #TODO REMOVE:
+        self._bomberman.powers.append(Powerups.Detonator)
+        self._bomberman.powers.append(Powerups.Bombs)
+
 
     def stop(self):
         logger.info("GAME OVER")
@@ -174,8 +178,15 @@ class Game:
         try:
             if self._lastkeypress.isupper():
                 #Parse action
-                if self._lastkeypress == 'B' and len(self._bombs) < self._bomberman.powers.count(Powerups.Bombs) + 1:
-                    self._bombs.append(Bomb(self._bomberman.pos, self.map, MIN_BOMB_RADIUS+self._bomberman.flames())) # must be dependent of powerup
+                if self._lastkeypress == 'A' and len(self._bombs) > 0:
+                    self._bombs[0].detonate() #always detonate the oldest bomb
+                elif self._lastkeypress == 'B' and len(self._bombs) < self._bomberman.powers.count(Powerups.Bombs) + 1:
+                    self._bombs.append(Bomb(self._bomberman.pos, 
+                                            self.map, 
+                                            MIN_BOMB_RADIUS+self._bomberman.flames(),
+                                            detonator= Powerups.Detonator in self._bomberman.powers
+                                            )
+                                        ) # must be dependent of powerup
             else:
                 #Update position
                 new_pos = self.map.calc_pos(self._bomberman.pos, self._lastkeypress) #don't bump into stones/walls
