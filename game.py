@@ -10,35 +10,36 @@ from characters import Balloom, Bomberman, Character, Doll, Minvo, Oneal
 from consts import Powerups
 from mapa import Map, Tiles
 
-logger = logging.getLogger('Game')
+logger = logging.getLogger("Game")
 logger.setLevel(logging.DEBUG)
 
 LIVES = 3
 INITIAL_SCORE = 0
-TIMEOUT = 3000 
+TIMEOUT = 3000
 GAME_SPEED = 10
 MIN_BOMB_RADIUS = 3
 
 LEVEL_ENEMIES = {
-                 1: [Balloom]*6,
-                 2: [Balloom]*3 + [Oneal]*3,
-                 3: [Balloom]*2 + [Oneal]*2 + [Doll]*2,
-                 4: [Balloom] + [Oneal] + [Doll]*2 + [Minvo]*2,
-                 5: [Oneal]*4 + [Doll]*3,
-                }
+    1: [Balloom] * 6,
+    2: [Balloom] * 3 + [Oneal] * 3,
+    3: [Balloom] * 2 + [Oneal] * 2 + [Doll] * 2,
+    4: [Balloom] + [Oneal] + [Doll] * 2 + [Minvo] * 2,
+    5: [Oneal] * 4 + [Doll] * 3,
+}
 
 LEVEL_POWERUPS = {
-                  1: Powerups.Flames,
-                  2: Powerups.Bombs,
-                  3: Powerups.Detonator,
-                  4: Powerups.Speed,
-                  5: Powerups.Bombs
+    1: Powerups.Flames,
+    2: Powerups.Bombs,
+    3: Powerups.Detonator,
+    4: Powerups.Speed,
+    5: Powerups.Bombs,
 }
+
 
 class Bomb:
     def __init__(self, pos, mapa, radius, detonator=False):
         self._pos = pos
-        self._timeout = radius+1 #TODO fine tune
+        self._timeout = radius + 1  # TODO fine tune
         self._radius = radius
         self._detonator = detonator
         self._map = mapa
@@ -61,7 +62,7 @@ class Bomb:
 
     def update(self):
         if not self._detonator:
-            self._timeout-=1/2
+            self._timeout -= 1 / 2
 
     def exploded(self):
         return not self._timeout > 0
@@ -74,18 +75,18 @@ class Bomb:
             cx, cy = character
 
         if by == cy:
-            for r in range(self._radius+1):
+            for r in range(self._radius + 1):
                 if self._map.is_stone((bx + r, by)):
-                    break #protected by stone
+                    break  # protected by stone
                 if (cx, cy) == (bx + r, by) or (cx, cy) == (bx - r, by):
                     return True
         if bx == cx:
-            for r in range(self._radius+1):
+            for r in range(self._radius + 1):
                 if self._map.is_stone((bx, by + r)):
-                    break #protected by stone
+                    break  # protected by stone
                 if (cx, cy) == (bx, by + r) or (cx, cy) == (bx, by - r):
                     return True
-        
+
         return False
 
     def __repr__(self):
@@ -104,16 +105,15 @@ class Game:
         self.map = Map()
         self._enemies = []
 
-
-
     def info(self):
-        return {"size": self.map.size,
-                           "map": self.map.map,
-                           "fps": GAME_SPEED,
-                           "timeout": TIMEOUT,
-                           "lives": LIVES,
-                           "score": self.score,
-                            }
+        return {
+            "size": self.map.size,
+            "map": self.map.map,
+            "fps": GAME_SPEED,
+            "timeout": TIMEOUT,
+            "lives": LIVES,
+            "score": self.score,
+        }
 
     @property
     def running(self):
@@ -127,18 +127,17 @@ class Game:
         logger.debug("Reset world")
         self._player_name = player_name
         self._running = True
-        self._score = INITIAL_SCORE 
+        self._score = INITIAL_SCORE
 
         self.next_level(self.initial_level)
-        #TODO REMOVE:
+        # TODO REMOVE:
         self._bomberman.powers.append(Powerups.Detonator)
         self._bomberman.powers.append(Powerups.Bombs)
-
 
     def stop(self):
         logger.info("GAME OVER")
         self._running = False
-    
+
     def next_level(self, level):
         if level > len(LEVEL_ENEMIES):
             logger.info("You WIN!")
@@ -153,9 +152,11 @@ class Game:
         self._powerups = []
         self._bonus = []
         self._exit = []
-        self._lastkeypress = "" 
+        self._lastkeypress = ""
         self._bomb_radius = 3
-        self._enemies = [t(p) for t, p in zip(LEVEL_ENEMIES[level], self.map.enemies_spawn)]
+        self._enemies = [
+            t(p) for t, p in zip(LEVEL_ENEMIES[level], self.map.enemies_spawn)
+        ]
 
     def quit(self):
         logger.debug("Quit")
@@ -167,35 +168,45 @@ class Game:
     def update_bomberman(self):
         try:
             if self._lastkeypress.isupper():
-                #Parse action
-                if self._lastkeypress == 'A' and len(self._bombs) > 0:
-                    self._bombs[0].detonate() #always detonate the oldest bomb
-                elif self._lastkeypress == 'B' and len(self._bombs) < self._bomberman.powers.count(Powerups.Bombs) + 1:
-                    self._bombs.append(Bomb(self._bomberman.pos, 
-                                            self.map, 
-                                            MIN_BOMB_RADIUS+self._bomberman.flames(),
-                                            detonator= Powerups.Detonator in self._bomberman.powers
-                                            )
-                                        ) # must be dependent of powerup
+                # Parse action
+                if self._lastkeypress == "A" and len(self._bombs) > 0:
+                    self._bombs[0].detonate()  # always detonate the oldest bomb
+                elif (
+                    self._lastkeypress == "B"
+                    and len(self._bombs)
+                    < self._bomberman.powers.count(Powerups.Bombs) + 1
+                ):
+                    self._bombs.append(
+                        Bomb(
+                            self._bomberman.pos,
+                            self.map,
+                            MIN_BOMB_RADIUS + self._bomberman.flames(),
+                            detonator=Powerups.Detonator in self._bomberman.powers,
+                        )
+                    )  # must be dependent of powerup
             else:
-                #Update position
-                new_pos = self.map.calc_pos(self._bomberman.pos, self._lastkeypress) #don't bump into stones/walls
-                if new_pos not in [b.pos for b in self._bombs]: #don't pass over bombs
+                # Update position
+                new_pos = self.map.calc_pos(
+                    self._bomberman.pos, self._lastkeypress
+                )  # don't bump into stones/walls
+                if new_pos not in [b.pos for b in self._bombs]:  # don't pass over bombs
                     self._bomberman.pos = new_pos
-                for pos, _type in self._powerups: #consume powerups
+                for pos, _type in self._powerups:  # consume powerups
                     if new_pos == pos:
                         self._bomberman.powerup(_type)
                         self._powerups.remove((pos, _type))
 
         except AssertionError:
-            logger.error("Invalid key <%s> pressed. Valid keys: w,a,s,d A B", self._lastkeypress)
+            logger.error(
+                "Invalid key <%s> pressed. Valid keys: w,a,s,d A B", self._lastkeypress
+            )
         finally:
-            self._lastkeypress = "" #remove inertia
+            self._lastkeypress = ""  # remove inertia
 
         if len(self._enemies) == 0 and self._bomberman.pos == self._exit:
             logger.info(f"Level {self.map.level} completed")
-            self._score += (self._timeout - self._step)
-            self.next_level(self.map.level+1)
+            self._score += self._timeout - self._step
+            self.next_level(self.map.level + 1)
 
     def kill_bomberman(self):
         logger.info(f"bomberman has died on step: {self._step}")
@@ -228,7 +239,9 @@ class Game:
                         if self.map.exit_door == wall:
                             self._exit = wall
                         if self.map.powerup == wall:
-                            self._powerups.append((wall, LEVEL_POWERUPS[self.map.level]))
+                            self._powerups.append(
+                                (wall, LEVEL_POWERUPS[self.map.level])
+                            )
 
                 for enemy in self._enemies[:]:
                     if bomb.in_range(enemy):
@@ -239,7 +252,7 @@ class Game:
                 self._bombs.remove(bomb)
 
     async def next_frame(self):
-        await asyncio.sleep(1./GAME_SPEED)
+        await asyncio.sleep(1.0 / GAME_SPEED)
 
         if not self._running:
             logger.info("Waiting for player 1")
@@ -250,32 +263,37 @@ class Game:
             self.stop()
 
         if self._step % 100 == 0:
-            logger.debug(f"[{self._step}] SCORE {self._score} - LIVES {self._bomberman.lives}")
+            logger.debug(
+                f"[{self._step}] SCORE {self._score} - LIVES {self._bomberman.lives}"
+            )
 
-        self.explode_bomb()  
+        self.explode_bomb()
         self.update_bomberman()
 
-        if self._step % (self._bomberman.powers.count(Powerups.Speed)+1) == 0: #increase speed of bomberman by moving enemies less often
+        if (
+            self._step % (self._bomberman.powers.count(Powerups.Speed) + 1) == 0
+        ):  # increase speed of bomberman by moving enemies less often
             for enemy in self._enemies:
                 enemy.move(self.map, self._bomberman, self._bombs)
 
         self.collision()
-        self._state = {"level": self.map.level,
-                       "step": self._step,
-                       "timeout": self._timeout,
-                       "player": self._player_name,
-                       "score": self._score,
-                       "lives": self._bomberman.lives,
-                       "bomberman": self._bomberman.pos,
-                       "bombs": [(b.pos, b.timeout, b.radius) for b in self._bombs],
-                       "enemies": [{'name': str(e), 'pos': e.pos} for e in self._enemies],
-                       "walls": self.map.walls,
-                       "powerups": [(p, Powerups(n).name) for p, n in self._powerups], 
-                       "bonus": self._bonus,
-                       "exit": self._exit,
-                       }
+        self._state = {
+            "level": self.map.level,
+            "step": self._step,
+            "timeout": self._timeout,
+            "player": self._player_name,
+            "score": self._score,
+            "lives": self._bomberman.lives,
+            "bomberman": self._bomberman.pos,
+            "bombs": [(b.pos, b.timeout, b.radius) for b in self._bombs],
+            "enemies": [{"name": str(e), "pos": e.pos} for e in self._enemies],
+            "walls": self.map.walls,
+            "powerups": [(p, Powerups(n).name) for p, n in self._powerups],
+            "bonus": self._bonus,
+            "exit": self._exit,
+        }
 
     @property
     def state(self):
-        #logger.debug(self._state)
+        # logger.debug(self._state)
         return json.dumps(self._state)
