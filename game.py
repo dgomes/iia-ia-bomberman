@@ -205,7 +205,7 @@ class Game:
 
         if len(self._enemies) == 0 and self._bomberman.pos == self._exit:
             logger.info(f"Level {self.map.level} completed")
-            self._score += self._timeout - self._step
+            #self._score += self._timeout - self._step
             self.next_level(self.map.level + 1)
 
     def kill_bomberman(self):
