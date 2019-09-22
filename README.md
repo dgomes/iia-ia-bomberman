@@ -24,8 +24,8 @@ to play using the sample client make sure the client pygame hidden window has fo
 ### Keys
 
 Directions: arrows
-*A*: 'z' - detonates (only after picking up the detonator powerup)
-*B*: 'x' - drops bomb
+*A*: 'a' - detonates (only after picking up the detonator powerup)
+*B*: 'b' - drops bomb
 
 ## Debug Installation
 
