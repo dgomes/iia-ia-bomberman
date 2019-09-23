@@ -125,7 +125,7 @@ class Game_server:
                         game_rec["level"] = self.game.map.level
                         requests.post(self.grading, json=game_rec)
                 except:
-                    logger.warn("Could not save score to server")
+                    logger.warning("Could not save score to server")
 
                 if self.current_player:
                     await self.current_player.ws.close()
