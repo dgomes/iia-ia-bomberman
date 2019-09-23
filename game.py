@@ -130,9 +130,6 @@ class Game:
         self._score = INITIAL_SCORE
 
         self.next_level(self.initial_level)
-        # TODO REMOVE:
-        self._bomberman.powers.append(Powerups.Detonator)
-        self._bomberman.powers.append(Powerups.Bombs)
 
     def stop(self):
         logger.info("GAME OVER")
