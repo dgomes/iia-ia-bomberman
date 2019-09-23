@@ -18,6 +18,7 @@ INITIAL_SCORE = 0
 TIMEOUT = 3000
 GAME_SPEED = 10
 MIN_BOMB_RADIUS = 3
+MAP_SIZE = (51, 31)
 
 LEVEL_ENEMIES = {
     1: [Balloom] * 6,
@@ -94,7 +95,7 @@ class Bomb:
 
 
 class Game:
-    def __init__(self, level=1, lives=LIVES, timeout=TIMEOUT):
+    def __init__(self, level=1, lives=LIVES, timeout=TIMEOUT, size=MAP_SIZE):
         logger.info(f"Game(level={level}, lives={lives})")
         self.initial_level = level
         self._running = False
@@ -102,7 +103,7 @@ class Game:
         self._score = 0
         self._state = {}
         self._initial_lives = lives
-        self.map = Map()
+        self.map = Map(size=size)
         self._enemies = []
 
     def info(self):
@@ -142,7 +143,7 @@ class Game:
             return
 
         logger.info("NEXT LEVEL")
-        self.map = Map(level=level, enemies=len(LEVEL_ENEMIES[level]))
+        self.map = Map(level=level, size=self.map.size, enemies=len(LEVEL_ENEMIES[level]))
         self._step = 0
         self._bomberman = Bomberman(self.map.bomberman_spawn, self._initial_lives)
         self._bombs = []
