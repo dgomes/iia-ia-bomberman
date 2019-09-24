@@ -425,6 +425,8 @@ async def main_game():
                 "bomberman" in state
                 and "exit" in state
                 and state["bomberman"] == state["exit"]
+                and "enemies" in state
+                and state["enemies"] == []
             )
         ):
             highscores = newgame_json["highscores"]
