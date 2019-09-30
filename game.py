@@ -78,14 +78,24 @@ class Bomb:
         if by == cy:
             for r in range(self._radius + 1):
                 if self._map.is_stone((bx + r, by)):
-                    break  # protected by stone
-                if (cx, cy) == (bx + r, by) or (cx, cy) == (bx - r, by):
+                    break  # protected by stone to the right
+                if (cx, cy) == (bx + r, by):
+                    return True
+            for r in range(self._radius + 1):
+                if self._map.is_stone((bx + r, by)):
+                    break  # protected by stone to the left 
+                if (cx, cy) == (bx - r, by):
                     return True
         if bx == cx:
             for r in range(self._radius + 1):
                 if self._map.is_stone((bx, by + r)):
-                    break  # protected by stone
-                if (cx, cy) == (bx, by + r) or (cx, cy) == (bx, by - r):
+                    break  # protected by stone in the bottom
+                if (cx, cy) == (bx, by + r):
+                    return True
+            for r in range(self._radius + 1):
+                if self._map.is_stone((bx, by - r)):
+                    break  # protected by stone in the top
+                if (cx, cy) == (bx, by - r):
                     return True
 
         return False
@@ -284,7 +294,7 @@ class Game:
             "lives": self._bomberman.lives,
             "bomberman": self._bomberman.pos,
             "bombs": [(b.pos, b.timeout, b.radius) for b in self._bombs],
-            "enemies": [{"name": str(e), "pos": e.pos} for e in self._enemies],
+            "enemies": [{"name": str(e), "id": str(e.id), "pos": e.pos} for e in self._enemies],
             "walls": self.map.walls,
             "powerups": [(p, Powerups(n).name) for p, n in self._powerups],
             "bonus": self._bonus,
