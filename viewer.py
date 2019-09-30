@@ -49,7 +49,7 @@ MINVO = {
     "right": (3 * 16, 18 * 16),
 }
 ENEMIES = {"Balloom": BALLOOM, "Oneal": ONEAL, "Doll": DOLL, "Minvo": MINVO}
-POWERUPS = {"Bombs": (0, 14 * 16), "Flames": (1 * 16, 14 * 16)}
+POWERUPS = {"Bombs": (0, 14 * 16), "Flames": (1 * 16, 14 * 16), "Detonator": (4 * 16, 14 * 16)}
 STONE = (48, 48)
 WALL = (64, 48)
 PASSAGE = (0, 64)
@@ -425,6 +425,8 @@ async def main_game():
                 "bomberman" in state
                 and "exit" in state
                 and state["bomberman"] == state["exit"]
+                and "enemies" in state
+                and state["enemies"] == []
             )
         ):
             highscores = newgame_json["highscores"]
