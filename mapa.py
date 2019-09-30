@@ -18,7 +18,7 @@ VITAL_SPACE = 3
 
 class Map:
     def __init__(self, level=1, enemies=0, size=(VITAL_SPACE+10, VITAL_SPACE+10), mapa=None, enemies_spawn=[]):
-        
+
         assert size[0] > VITAL_SPACE+9
         assert size[1] > VITAL_SPACE+9
 
@@ -123,6 +123,8 @@ class Map:
 
     def is_stone(self, pos):
         x, y = pos
+        if x >= self.hor_tiles or y >= self.ver_tiles: #everything outside of map is stone
+            return True
         return self.map[x][y] in [Tiles.STONE]
 
     def calc_pos(self, cur, direction, wallpass=False):
