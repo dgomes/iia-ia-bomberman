@@ -113,7 +113,7 @@ class Game:
         self._score = 0
         self._state = {}
         self._initial_lives = lives
-        self.map = Map(size=size)
+        self.map = Map(size=size, empty=True)
         self._enemies = []
 
     def info(self):
