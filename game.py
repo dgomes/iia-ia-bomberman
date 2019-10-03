@@ -82,7 +82,7 @@ class Bomb:
                 if (cx, cy) == (bx + r, by):
                     return True
             for r in range(self._radius + 1):
-                if self._map.is_stone((bx + r, by)):
+                if self._map.is_stone((bx - r, by)):
                     break  # protected by stone to the left 
                 if (cx, cy) == (bx - r, by):
                     return True
