@@ -277,14 +277,15 @@ class Game:
 
         self.explode_bomb()
         self.update_bomberman()
+        self.collision()
 
         if (
             self._step % (self._bomberman.powers.count(Powerups.Speed) + 1) == 0
         ):  # increase speed of bomberman by moving enemies less often
             for enemy in self._enemies:
                 enemy.move(self.map, self._bomberman, self._bombs)
+        	self.collision()
 
-        self.collision()
         self._state = {
             "level": self.map.level,
             "step": self._step,
