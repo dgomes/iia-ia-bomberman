@@ -164,7 +164,7 @@ class Game:
         self._enemies = [
             t(p) for t, p in zip(LEVEL_ENEMIES[level], self.map.enemies_spawn)
         ]
-		logger.debug(self._enemies)
+        logger.debug(self._enemies)
 
     def quit(self):
         logger.debug("Quit")
@@ -284,7 +284,7 @@ class Game:
         ):  # increase speed of bomberman by moving enemies less often
             for enemy in self._enemies:
                 enemy.move(self.map, self._bomberman, self._bombs)
-        	self.collision()
+            self.collision()
 
         self._state = {
             "level": self.map.level,
