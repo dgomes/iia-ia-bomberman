@@ -248,7 +248,7 @@ class Game:
             bomb.update()
             if bomb.exploded():
                 logger.debug("BOOM")
-                if bomb.in_range(self._bomberman):
+                if bomb.in_range(self._bomberman) and not self._bomberman.flamepass:
                     self.kill_bomberman()
 
                 for wall in self.map.walls[:]:

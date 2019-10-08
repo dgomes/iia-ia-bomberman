@@ -74,6 +74,10 @@ class Bomberman(Character):
         return Powerups.Wallpass in self._powers
 
     @property
+    def flamepass(self):
+        return Powerups.Flamepass in self._powers
+    
+    @property
     def bombpass(self):
         return Powerups.Bombpass in self._powers
 
