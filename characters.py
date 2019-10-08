@@ -113,8 +113,8 @@ class Enemy(Character):
                 self.lastdir = (self.lastdir + 1) % len(self.dir)
 
         elif self._smart == Smart.NORMAL:
-
-            open_pos = [pos for pos in [mapa.calc_pos(self.pos, d, self._wallpass) for d in DIR] if pos not in [self.pos, self.lastpos]]
+            enemies_pos = [e.pos for e in enemies if e.id != self.id]
+            open_pos = [pos for pos in [mapa.calc_pos(self.pos, d, self._wallpass) for d in DIR] if pos not in [self.lastpos]+enemies_pos]
             if open_pos == []:
                 new_pos = self.lastpos
             else:
