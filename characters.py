@@ -69,6 +69,10 @@ class Bomberman(Character):
     def lives(self):
         return self._lives
 
+    @property
+    def wallpass(self):
+        return Powerups.Wallpass in self._powers
+
     def flames(self):
         return len([p for p in self._powers if p == Powerups.Flames])
 

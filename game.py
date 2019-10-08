@@ -206,7 +206,7 @@ class Game:
             else:
                 # Update position
                 new_pos = self.map.calc_pos(
-                    self._bomberman.pos, self._lastkeypress
+                    self._bomberman.pos, self._lastkeypress, self._bomberman.wallpass
                 )  # don't bump into stones/walls
                 if new_pos not in [b.pos for b in self._bombs]:  # don't pass over bombs
                     self._bomberman.pos = new_pos
