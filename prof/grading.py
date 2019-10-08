@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'grades.sqlite')
 db = SQLAlchemy(app)
@@ -39,6 +39,7 @@ def add_game():
     level = request.json['level']
     score = request.json['score']
 
+    print(player, score)
     new_game = Game(player, level, score)
 
     db.session.add(new_game)
@@ -46,13 +47,16 @@ def add_game():
 
     return game_schema.jsonify(new_game) 
 
+@app.route("/static/<path:path>")
+def send_static(path):
+    return send_from_directory('static', path)
 
 # endpoint to show highscores 
 @app.route("/highscores", methods=["GET"])
 def get_game():
-    all_games = db.session.query(Game).order_by(Game.score.desc()).limit(10)
-    result = games_schema.dump(all_games)
-    print(result)
+    page = request.args.get('page', 1, type=int)
+    all_games = db.session.query(Game).order_by(Game.score.desc()).paginate(page, 20, False)
+    result = games_schema.dump(all_games.items)
     return jsonify(result)
 
 
@@ -65,4 +69,4 @@ def game_detail(player):
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=False, host='0.0.0.0', port=80)

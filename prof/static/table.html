@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="styles.css">
+		<title>Bomberman Score Board</title>
+		<script>
+			let all = false
+			function getScores(page=1) {
+				if(all) return false;
+
+				let url = '/highscores?page='+page;
+				console.log(url);
+				fetch(url)
+					.then(res => res.json())
+					.then((highscores) => {
+						let table = document.querySelector("table");
+						let data = Object.keys(highscores[0]);
+						generateTable(table, highscores);
+
+					})
+					.catch(err => { all=true; throw err });
+				return true;
+			}
+
+function generateTable(table, data) {
+	for (let element of data) {
+		let row = table.insertRow();
+		for (key in element) {
+			if(key == "id") continue;
+			let cell = row.insertCell();
+			let text = document.createTextNode(element[key]);
+			cell.appendChild(text);
+		}
+	}
+}
+
+		</script>
+	</head>
+	<body translate="no">
+
+		<div class="container" id="scores">
+			<table>
+<thead><tr><th>Level</th><th>Player</th><th>Score</th><th>Timestamp</th></tr>
+</thead>
+			</table>
+		</div>
+
+
+	</body>
+	<script>
+getScores();
+
+document.querySelector("body").style.height = "2000px";
+
+window.addEventListener("scroll", function() {
+
+    console.log("what?");
+    var body = document.querySelector("body");
+    var height = body.style.height;
+    height = height.slice(0, -2);
+    height = Number(height);
+    return function() {
+        if(height - window.scrollY < 1700) {
+		if(getScores(height/1000))
+	            height += 1000; 
+        }
+        body.style.height = height + "px";
+    };
+}());
+
+
+		</script>
+</html>
