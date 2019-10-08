@@ -78,14 +78,24 @@ class Bomb:
         if by == cy:
             for r in range(self._radius + 1):
                 if self._map.is_stone((bx + r, by)):
-                    break  # protected by stone
-                if (cx, cy) == (bx + r, by) or (cx, cy) == (bx - r, by):
+                    break  # protected by stone to the right
+                if (cx, cy) == (bx + r, by):
+                    return True
+            for r in range(self._radius + 1):
+                if self._map.is_stone((bx - r, by)):
+                    break  # protected by stone to the left 
+                if (cx, cy) == (bx - r, by):
                     return True
         if bx == cx:
             for r in range(self._radius + 1):
                 if self._map.is_stone((bx, by + r)):
-                    break  # protected by stone
-                if (cx, cy) == (bx, by + r) or (cx, cy) == (bx, by - r):
+                    break  # protected by stone in the bottom
+                if (cx, cy) == (bx, by + r):
+                    return True
+            for r in range(self._radius + 1):
+                if self._map.is_stone((bx, by - r)):
+                    break  # protected by stone in the top
+                if (cx, cy) == (bx, by - r):
                     return True
 
         return False
@@ -103,7 +113,7 @@ class Game:
         self._score = 0
         self._state = {}
         self._initial_lives = lives
-        self.map = Map(size=size)
+        self.map = Map(size=size, empty=True)
         self._enemies = []
 
     def info(self):
@@ -129,6 +139,7 @@ class Game:
         self._player_name = player_name
         self._running = True
         self._score = INITIAL_SCORE
+        self._bomberman = Bomberman(self.map.bomberman_spawn, self._initial_lives)
 
         self.next_level(self.initial_level)
 
@@ -144,17 +155,17 @@ class Game:
 
         logger.info("NEXT LEVEL")
         self.map = Map(level=level, size=self.map.size, enemies=len(LEVEL_ENEMIES[level]))
+        self._bomberman.respawn()
         self._step = 0
-        self._bomberman = Bomberman(self.map.bomberman_spawn, self._initial_lives)
         self._bombs = []
         self._powerups = []
         self._bonus = []
         self._exit = []
         self._lastkeypress = ""
-        self._bomb_radius = 3
         self._enemies = [
             t(p) for t, p in zip(LEVEL_ENEMIES[level], self.map.enemies_spawn)
         ]
+        logger.debug(self._enemies)
 
     def quit(self):
         logger.debug("Quit")
@@ -267,14 +278,15 @@ class Game:
 
         self.explode_bomb()
         self.update_bomberman()
+        self.collision()
 
         if (
             self._step % (self._bomberman.powers.count(Powerups.Speed) + 1) == 0
         ):  # increase speed of bomberman by moving enemies less often
             for enemy in self._enemies:
                 enemy.move(self.map, self._bomberman, self._bombs)
+            self.collision()
 
-        self.collision()
         self._state = {
             "level": self.map.level,
             "step": self._step,
@@ -284,7 +296,7 @@ class Game:
             "lives": self._bomberman.lives,
             "bomberman": self._bomberman.pos,
             "bombs": [(b.pos, b.timeout, b.radius) for b in self._bombs],
-            "enemies": [{"name": str(e), "pos": e.pos} for e in self._enemies],
+            "enemies": [{"name": str(e), "id": str(e.id), "pos": e.pos} for e in self._enemies],
             "walls": self.map.walls,
             "powerups": [(p, Powerups(n).name) for p, n in self._powerups],
             "bonus": self._bonus,

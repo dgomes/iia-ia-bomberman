@@ -3,7 +3,7 @@ Bomberman clone for AI teaching
 
 ## How to install
 
-Make sure you are running Python 3.7.
+Make sure you are running Python 3.5.
 
 `$ pip install -r requirements.txt`
 

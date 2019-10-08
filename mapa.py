@@ -17,8 +17,8 @@ VITAL_SPACE = 3
 
 
 class Map:
-    def __init__(self, level=1, enemies=0, size=(VITAL_SPACE+10, VITAL_SPACE+10), mapa=None, enemies_spawn=[]):
-        
+    def __init__(self, level=1, enemies=0, size=(VITAL_SPACE+10, VITAL_SPACE+10), mapa=None, enemies_spawn=[], empty=False):
+
         assert size[0] > VITAL_SPACE+9
         assert size[1] > VITAL_SPACE+9
 
@@ -39,7 +39,7 @@ class Map:
                     elif x % 2 == 0 and y % 2 == 0:
                         self.map[x][y] = Tiles.STONE
                     elif (
-                        x >= VITAL_SPACE and y >= VITAL_SPACE
+                        x >= VITAL_SPACE and y >= VITAL_SPACE and not empty
                     ):  # give bomberman some room
                         if random.randint(0, 100) > 70 + 25 / level:
                             self.map[x][y] = Tiles.WALL
@@ -62,10 +62,11 @@ class Map:
                         self.map[x + rx][y + ry] = Tiles.PASSAGE
                         self._walls.remove((x + rx, y + ry))
 
-            self.exit_door = random.choice(self._walls)
-            self.powerup = random.choice(
-                [w for w in self._walls if w != self.exit_door]
-            )  # hide powerups behind walls only
+            if not empty:
+                self.exit_door = random.choice(self._walls)
+                self.powerup = random.choice(
+                    [w for w in self._walls if w != self.exit_door]
+                )  # hide powerups behind walls only
 
         else:
             logger.info("Loading MAP")
@@ -123,6 +124,8 @@ class Map:
 
     def is_stone(self, pos):
         x, y = pos
+        if x >= self.hor_tiles or y >= self.ver_tiles: #everything outside of map is stone
+            return True
         return self.map[x][y] in [Tiles.STONE]
 
     def calc_pos(self, cur, direction, wallpass=False):

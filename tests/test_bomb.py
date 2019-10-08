@@ -4,15 +4,19 @@ from mapa import *
 from characters import *
 
 #columns x lines
-mapa9x9 =  [[Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE], 
-            [Tiles.STONE,Tiles.PASSAGE,Tiles.WALL,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
-            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
-            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
-            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
-            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
-            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
-            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
-            [Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE]] 
+mapa13x13 =  [[Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.WALL,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.PASSAGE,Tiles.STONE], 
+            [Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE,Tiles.STONE]] 
 
 def test_game():
     game = Game()
@@ -27,7 +31,7 @@ def test_map():
     game = Game()
     game.start("John Doe")
 
-    game.map = Map(enemies=0, size=(9,9), mapa=mapa9x9, enemies_spawn=[(8,8), (7,8), (8,7)]) 
+    game.map = Map(enemies=0, size=(13,13), mapa=mapa13x13, enemies_spawn=[(8,8), (7,8), (8,7)]) 
 
     print(game.map.map)
 
@@ -52,7 +56,7 @@ def test_bomb():
     game.start("John Doe")
 
     # Hammer down a wellknown map with 3 enemies
-    game.map = Map(enemies=3, size=(9,9), mapa=mapa9x9, enemies_spawn=[(4,2), (2,4), (7,7)])
+    game.map = Map(enemies=3, size=(13,13), mapa=mapa13x13, enemies_spawn=[(4,2), (2,4), (10,10)])
     game._enemies = [ t(p) for t, p in zip(LEVEL_ENEMIES[-1], game.map.enemies_spawn) ]
 
     game._bombs = [Bomb((4,4), game.map, 3)]
@@ -73,17 +77,25 @@ def test_bomb():
     for f in [(1,1), (1,2), (1,3), (1,5), (1,6), (1,7), (2,1), (3,1), (5,1), (6,1), (7,1), (2,7), (3,7), (5,7), (6,7), (7,7), (7,2), (7,3), (7,5), (7,6), (2,2), (3,2), (2,3), (3,3)]:
         assert not game._bombs[0].in_range(f)
 
-    game._bomberman = Bomberman((1,1), 1)
-    assert game._bomberman.lives == 1 
+    game._bomberman = Bomberman((1,1), 2)
+    assert game._bomberman.lives == 2 
     
     # final tick for older bomb
     game.explode_bomb()
     assert len(game._bombs) == 1 
 
     game.explode_bomb()
-    assert game._bomberman.lives == 0
+    assert game._bomberman.lives == 1
 
     for e in game._enemies:
         print(e)
 
     assert len(game._enemies) == 1
+
+    #destroy enemy in a corner (edge test)
+    game._bombs.append(Bomb((10,11), game.map, 3))
+
+    for _ in range(3*3):
+        game.explode_bomb()
+
+    assert len(game._enemies) == 0

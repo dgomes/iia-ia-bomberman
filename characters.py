@@ -1,6 +1,7 @@
 from consts import Powerups, Speed, Smart
 from enum import IntEnum
 import random
+import uuid
 
 DIR = "wasd"
 DEFAULT_LIVES = 3
@@ -76,6 +77,7 @@ class Bomberman(Character):
 class Enemy(Character):
     def __init__(self, pos, name, points, speed, smart, wallpass):
         self._name = name
+        self.id = uuid.uuid4()
         self._points = points
         self._speed = speed
         self._smart = smart
