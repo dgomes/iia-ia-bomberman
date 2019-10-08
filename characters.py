@@ -2,10 +2,15 @@ from consts import Powerups, Speed, Smart
 from enum import IntEnum
 import random
 import uuid
+import math
 
 DIR = "wasd"
 DEFAULT_LIVES = 3
 
+def distance(p1, p2):
+    x1,y1 = p1
+    x2,y2 = p2
+    return math.hypot(x1-x2, y1-y2)
 
 def vector2dir(vx, vy):
     m = max(abs(vx), abs(vy))
@@ -84,10 +89,8 @@ class Enemy(Character):
         self._wallpass = wallpass
         self.dir = DIR
         self.step = 0
-        if smart in [Smart.NORMAL, Smart.HIGH]:
-            self.lastdir = None
-        else:
-            self.lastdir = 0
+        self.lastdir = 0
+        self.lastpos = None
         self.wander = 0
 
         super().__init__(*pos)
@@ -110,28 +113,19 @@ class Enemy(Character):
                 self.lastdir = (self.lastdir + 1) % len(self.dir)
 
         elif self._smart == Smart.NORMAL:
-            b_x, b_y = bomberman.pos
-            o_x, o_y = self.pos
 
-            if self.lastdir:
-                direction = self.lastdir
+            open_pos = [pos for pos in [mapa.calc_pos(self.pos, d) for d in DIR] if pos not in [self.pos, self.lastpos]]
+            if open_pos == []:
+                new_pos = self.lastpos
             else:
-                direction = vector2dir(b_x - o_x, b_y - o_y)
-
-            new_pos = mapa.calc_pos(self.pos, self.dir[direction])  # chase bomberman
-            if new_pos == self.pos:
-                self.lastdir = (direction + random.choice([-1, 1])) % len(self.dir)
-                self.wander = 3
-            else:
-                if self.wander > 0:
-                    self.wander -= 1
-                else:
-                    self.lastdir = None
+                next_pos = sorted(open_pos, key=lambda pos: distance(bomberman.pos, pos), reverse=True)
+                new_pos = next_pos[0]
 
         elif self._smart == Smart.HIGH:
             # TODO
             pass
 
+        self.lastpos = self.pos
         self.pos = new_pos
 
     def ready(self):
