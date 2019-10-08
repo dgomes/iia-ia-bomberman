@@ -101,20 +101,20 @@ class Enemy(Character):
     def points(self):
         return self._points
 
-    def move(self, mapa, bomberman, bombs):
+    def move(self, mapa, bomberman, bombs, enemies):
         if not self.ready():
             return
 
         if self._smart == Smart.LOW:
             new_pos = mapa.calc_pos(
-                self.pos, self.dir[self.lastdir]
+                self.pos, self.dir[self.lastdir], self._wallpass
             )  # don't bump into stones/walls
             if new_pos == self.pos:
                 self.lastdir = (self.lastdir + 1) % len(self.dir)
 
         elif self._smart == Smart.NORMAL:
 
-            open_pos = [pos for pos in [mapa.calc_pos(self.pos, d) for d in DIR] if pos not in [self.pos, self.lastpos]]
+            open_pos = [pos for pos in [mapa.calc_pos(self.pos, d, self._wallpass) for d in DIR] if pos not in [self.pos, self.lastpos]]
             if open_pos == []:
                 new_pos = self.lastpos
             else:
@@ -161,4 +161,16 @@ class Minvo(Enemy):
     def __init__(self, pos):
         super().__init__(
             pos, self.__class__.__name__, 800, Speed.FAST, Smart.NORMAL, False
+        )
+
+class Kondoria(Enemy):
+    def __init__(self, pos):
+        super().__init__(
+            pos, self.__class__.__name__, 1000, Speed.SLOWEST, Smart.NORMAL, True #TODO CHANGE TO Smart.HIGH
+        )
+
+class Ovapi(Enemy):
+    def __init__(self, pos):
+        super().__init__(
+            pos, self.__class__.__name__, 2000, Speed.SLOW, Smart.NORMAL, True 
         )

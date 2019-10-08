@@ -6,7 +6,7 @@ import os
 
 import requests
 
-from characters import Balloom, Bomberman, Character, Doll, Minvo, Oneal
+from characters import Balloom, Bomberman, Character, Doll, Minvo, Oneal, Kondoria, Ovapi
 from consts import Powerups
 from mapa import Map, Tiles
 
@@ -26,6 +26,11 @@ LEVEL_ENEMIES = {
     3: [Balloom] * 2 + [Oneal] * 2 + [Doll] * 2,
     4: [Balloom] + [Oneal] + [Doll] * 2 + [Minvo] * 2,
     5: [Oneal] * 4 + [Doll] * 3,
+    6: [Oneal] * 2 + [Doll] * 3 + [Minvo] * 2,
+    7: [Oneal] * 2 + [Doll] * 3 + [Kondoria] * 2,
+    8: [Oneal] * 1 + [Doll] * 2 + [Minvo] * 4,
+    9: [Oneal] * 1 + [Doll] * 1 + [Minvo] * 4 + [Kondoria] * 1,
+    10: [Oneal] * 1 + [Doll] * 1 + [Minvo] * 1 + [Kondoria] * 3 + [Ovapi] * 1,
 }
 
 LEVEL_POWERUPS = {
@@ -34,6 +39,11 @@ LEVEL_POWERUPS = {
     3: Powerups.Detonator,
     4: Powerups.Speed,
     5: Powerups.Bombs,
+    6: Powerups.Bombs,
+    7: Powerups.Flames,
+    8: Powerups.Detonator,
+    9: Powerups.Bombpass,
+    10: Powerups.Wallpass,
 }
 
 
@@ -284,10 +294,7 @@ class Game:
             self._step % (self._bomberman.powers.count(Powerups.Speed) + 1) == 0
         ):  # increase speed of bomberman by moving enemies less often
             for enemy in self._enemies:
-                enemy.move(self.map, self._bomberman, self._bombs)
-                if enemy.pos in [en.pos for en in self._enemies if en.id != enemy.id]: #extra move to avoid overlap
-                    logger.debug(f"Avoid {enemy} overlap")
-                    enemy.move(self.map, self._bomberman, self._bombs)
+                enemy.move(self.map, self._bomberman, self._bombs, self._enemies)
             self.collision()
 
         self._state = {
