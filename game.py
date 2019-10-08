@@ -285,6 +285,9 @@ class Game:
         ):  # increase speed of bomberman by moving enemies less often
             for enemy in self._enemies:
                 enemy.move(self.map, self._bomberman, self._bombs)
+                if enemy.pos in [en.pos for en in self._enemies if en.id != enemy.id]: #extra move to avoid overlap
+                    logger.debug(f"Avoid {enemy} overlap")
+                    enemy.move(self.map, self._bomberman, self._bombs)
             self.collision()
 
         self._state = {
