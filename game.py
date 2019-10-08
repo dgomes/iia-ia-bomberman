@@ -155,7 +155,7 @@ class Game:
 
         logger.info("NEXT LEVEL")
         self.map = Map(level=level, size=self.map.size, enemies=len(LEVEL_ENEMIES[level]))
-		self._bomberman.respawn()
+        self._bomberman.respawn()
         self._step = 0
         self._bombs = []
         self._powerups = []
