@@ -208,7 +208,7 @@ class Game:
                 new_pos = self.map.calc_pos(
                     self._bomberman.pos, self._lastkeypress, self._bomberman.wallpass
                 )  # don't bump into stones/walls
-                if new_pos not in [b.pos for b in self._bombs]:  # don't pass over bombs
+                if self._bomberman.bombpass or new_pos not in [b.pos for b in self._bombs]:  # don't pass over bombs
                     self._bomberman.pos = new_pos
                 for pos, _type in self._powerups:  # consume powerups
                     if new_pos == pos:

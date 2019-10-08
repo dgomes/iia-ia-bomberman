@@ -73,6 +73,10 @@ class Bomberman(Character):
     def wallpass(self):
         return Powerups.Wallpass in self._powers
 
+    @property
+    def bombpass(self):
+        return Powerups.Bombpass in self._powers
+
     def flames(self):
         return len([p for p in self._powers if p == Powerups.Flames])
 
