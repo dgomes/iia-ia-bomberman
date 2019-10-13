@@ -134,8 +134,16 @@ class Enemy(Character):
                 new_pos = next_pos[0]
 
         elif self._smart == Smart.HIGH:
-            # TODO
-            pass
+            enemies_pos = [e.pos for e in enemies if e.id != self.id]
+            open_pos = [pos for pos in [mapa.calc_pos(self.pos, d, self._wallpass) for d in DIR] if pos not in [self.lastpos]+enemies_pos]
+            if open_pos == []:
+                new_pos = self.lastpos
+            else:
+                if len(bombs):
+                    next_pos = sorted(open_pos, key=lambda pos: distance(bombs[0].pos, pos), reverse=True)
+                else:
+                    next_pos = sorted(open_pos, key=lambda pos: distance(bomberman.pos, pos), reverse=True)
+                new_pos = next_pos[0]
 
         self.lastpos = self.pos
         self.pos = new_pos
@@ -178,7 +186,7 @@ class Minvo(Enemy):
 class Kondoria(Enemy):
     def __init__(self, pos):
         super().__init__(
-            pos, self.__class__.__name__, 1000, Speed.SLOWEST, Smart.NORMAL, True #TODO CHANGE TO Smart.HIGH
+            pos, self.__class__.__name__, 1000, Speed.SLOWEST, Smart.HIGH, True 
         )
 
 class Ovapi(Enemy):
