@@ -31,7 +31,6 @@ class Game_server:
         self.viewers = set()
         self.current_player = None
         self.grading = grading
-        self.game_info = "{}"
 
         self._highscores = []
         if os.path.isfile(HIGHSCORE_FILE):
@@ -56,15 +55,12 @@ class Game_server:
             async for message in websocket:
                 data = json.loads(message)
                 if data["cmd"] == "join":
-                    self.game_info = self.game.info()
-                    self.game_info["highscores"] = self._highscores
-                    await websocket.send(json.dumps(self.game_info))
-
                     if path == "/player":
                         logger.info("<%s> has joined", data["name"])
                         await self.players.put(Player(data["name"], websocket))
 
                     if path == "/viewer":
+                        logger.info("Viewer connected")
                         self.viewers.add(websocket)
 
                 if data["cmd"] == "key" and self.current_player.ws == websocket:
@@ -91,13 +87,19 @@ class Game_server:
             try:
                 logger.info(f"Starting game for <{self.current_player.name}>")
                 self.game.start(self.current_player.name)
+                
+                #Send game info to viewer and player
+                game_info = self.game.info()
+                game_info["highscores"] = self._highscores
                 if self.viewers:
                     await asyncio.wait(
                         [
-                            client.send(json.dumps(self.game_info))
+                            client.send(json.dumps(game_info))
                             for client in self.viewers
                         ]
                     )
+                await self.current_player.ws.send(json.dumps(game_info))
+
 
                 if self.grading:
                     game_rec = dict()
