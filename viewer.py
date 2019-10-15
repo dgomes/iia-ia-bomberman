@@ -60,7 +60,13 @@ OVAPI = {
     "down": (2 * 16, 20 * 16),
     "right": (3 * 16, 20 * 16),
 }
-ENEMIES = {"Balloom": BALLOOM, "Oneal": ONEAL, "Doll": DOLL, "Minvo": MINVO, "Kondoria": KONDORIA, "Ovapi": OVAPI}
+PASS = {
+    "up": (0, 21 * 16),
+    "left": (16, 21 * 16),
+    "down": (2 * 16, 21 * 16),
+    "right": (3 * 16, 21 * 16),
+}
+ENEMIES = {"Balloom": BALLOOM, "Oneal": ONEAL, "Doll": DOLL, "Minvo": MINVO, "Kondoria": KONDORIA, "Ovapi": OVAPI, "Pass": PASS}
 POWERUPS = {"Bombs": (0, 14 * 16), "Flames": (1 * 16, 14 * 16), "Detonator": (4 * 16, 14 * 16)}
 STONE = (48, 48)
 WALL = (64, 48)

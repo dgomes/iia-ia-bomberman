@@ -6,7 +6,7 @@ import os
 
 import requests
 
-from characters import Balloom, Bomberman, Character, Doll, Minvo, Oneal, Kondoria, Ovapi
+from characters import Balloom, Bomberman, Character, Doll, Minvo, Oneal, Kondoria, Ovapi, Pass
 from consts import Powerups
 from mapa import Map, Tiles
 
@@ -31,6 +31,11 @@ LEVEL_ENEMIES = {
     8: [Oneal] * 1 + [Doll] * 2 + [Minvo] * 4,
     9: [Oneal] * 1 + [Doll] * 1 + [Minvo] * 4 + [Kondoria] * 1,
     10: [Oneal] * 1 + [Doll] * 1 + [Minvo] * 1 + [Kondoria] * 3 + [Ovapi] * 1,
+    11: [Oneal] * 1 + [Doll] * 2 + [Minvo] * 3 + [Kondoria] * 1 + [Ovapi] * 1,
+    12: [Oneal] * 1 + [Doll] * 1 + [Minvo] * 1 + [Kondoria] * 4 + [Ovapi] * 1,
+    13: [Doll] * 3 + [Minvo] * 3 + [Kondoria] * 3,
+    14: [Ovapi] * 7 + [Pass] * 1,
+    15: [Doll] * 1 + [Minvo] * 3 + [Kondoria] * 3 + [Pass] * 1,
 }
 
 LEVEL_POWERUPS = {
@@ -44,6 +49,11 @@ LEVEL_POWERUPS = {
     8: Powerups.Detonator,
     9: Powerups.Bombpass,
     10: Powerups.Wallpass,
+    11: Powerups.Bombs,
+    12: Powerups.Bombs,
+    13: Powerups.Detonator,
+    14: Powerups.Bombpass,
+    15: Powerups.Flames,
 }
 
 

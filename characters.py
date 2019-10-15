@@ -194,3 +194,9 @@ class Ovapi(Enemy):
         super().__init__(
             pos, self.__class__.__name__, 2000, Speed.SLOW, Smart.NORMAL, True 
         )
+
+class Pass(Enemy):
+    def __init__(self, pos):
+        super().__init__(
+            pos, self.__class__.__name__, 4000, Speed.FAST, Smart.HIGH, False
+        )
