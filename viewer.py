@@ -67,7 +67,15 @@ PASS = {
     "right": (3 * 16, 21 * 16),
 }
 ENEMIES = {"Balloom": BALLOOM, "Oneal": ONEAL, "Doll": DOLL, "Minvo": MINVO, "Kondoria": KONDORIA, "Ovapi": OVAPI, "Pass": PASS}
-POWERUPS = {"Bombs": (0, 14 * 16), "Flames": (1 * 16, 14 * 16), "Detonator": (4 * 16, 14 * 16)}
+POWERUPS = {"Bombs": (0, 14 * 16), 
+			"Flames": (1 * 16, 14 * 16), 
+			"Speed": (2 * 16, 14 * 16), 
+			"Wallpass": (3 * 16, 14 * 16), 
+			"Detonator": (4 * 16, 14 * 16),
+			"Bombpass": (5 * 16, 14 * 16),
+			"Flamepass": (6 * 16, 14 * 16),
+			"Mystery": (7 * 16, 14 * 16),
+			}
 STONE = (48, 48)
 WALL = (64, 48)
 PASSAGE = (0, 64)
