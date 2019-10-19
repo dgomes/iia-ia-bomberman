@@ -456,6 +456,9 @@ async def main_game():
             )
         ):
             highscores = newgame_json["highscores"]
+            if (f"<{state['player']}>", state["score"]) not in highscores:
+                highscores.append((f"<{state['player']}>", state["score"]))
+            highscores = sorted(highscores, key=lambda s: s[1], reverse=True)[:-1]
 
             HIGHSCORES = pygame.Surface(scale((20, 16)))
             HIGHSCORES.fill(COLORS["grey"])
