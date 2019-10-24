@@ -340,7 +340,7 @@ def draw_info(SCREEN, text, pos, color=(0, 0, 0), background=None):
 
     x, y = pos
     if x > SCREEN.get_width():
-        pos = SCREEN.get_width() - textsurface.get_width(), y
+        pos = SCREEN.get_width() - (textsurface.get_width() +10), y
     if y > SCREEN.get_height():
         pos = x, SCREEN.get_height() - textsurface.get_height()
 
@@ -375,17 +375,16 @@ async def main_game():
     mapa = Map(size=newgame_json["size"], mapa=newgame_json["map"])
     TIMEOUT = newgame_json["timeout"]
     SCREEN = pygame.display.set_mode(scale(mapa.size))
-    SPRITES = pygame.image.load("data/nes.png").convert_alpha() # if in your terminal appears: "libpng warning: iCCP: known incorrect sRGB profile"
-                                                                # do this command in your project directory convert data/nes.png data/nes.png
+    SPRITES = pygame.image.load("data/nes.png").convert_alpha() 
+
     BACKGROUND = draw_background(mapa)
     SCREEN.blit(BACKGROUND, (0, 0))
-
     main_group.add(BomberMan(pos=mapa.bomberman_spawn))
 
     state = {"score": 0, "player": "player1", "bomberman": (1, 1)}
 
     while True:
-        SCREEN.blit(BACKGROUND, (0, 0))
+#        SCREEN.blit(BACKGROUND, (0, 0))
         pygame.event.pump()
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             asyncio.get_event_loop().stop()
@@ -396,9 +395,9 @@ async def main_game():
 
         if "score" in state and "player" in state:
             text = str(state["score"])
-            draw_info(SCREEN, text.zfill(6), (0, 0))
+            draw_info(SCREEN, text.zfill(6), (5, 1))
             text = str(state["player"]).rjust(32)
-            draw_info(SCREEN, text, (650, 0))
+            draw_info(SCREEN, text, (4000, 1))
 
         if "lives" in state and "level" in state:
             text = "lives: "
