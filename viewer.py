@@ -375,7 +375,7 @@ async def main_game():
     mapa = Map(size=newgame_json["size"], mapa=newgame_json["map"])
     TIMEOUT = newgame_json["timeout"]
     SCREEN = pygame.display.set_mode(scale(mapa.size))
-    SPRITES = pygame.image.load("data/nes.png").convert_alpha() 
+    SPRITES = pygame.image.load("data/nes.png").convert_alpha()
 
     BACKGROUND = draw_background(mapa)
     SCREEN.blit(BACKGROUND, (0, 0))
