@@ -307,6 +307,10 @@ class Game:
                 enemy.move(self.map, self._bomberman, self._bombs, self._enemies)
             self.collision()
 
+        #sanity check
+        for ep in [e.pos for e in self._enemies if not e._wallpass]:
+            assert ep not in self.map.walls
+
         self._state = {
             "level": self.map.level,
             "step": self._step,
