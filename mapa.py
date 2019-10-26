@@ -91,6 +91,10 @@ class Map:
     def walls(self):
         return self._walls
 
+    @walls.setter
+    def walls(self, walls):
+        self._walls = [ (x, y) for x, y in walls ] 
+
     def remove_wall(self, wall):
         self._walls.remove(wall)
 
