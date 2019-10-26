@@ -45,6 +45,7 @@ class Map:
                             self.map[x][y] = Tiles.WALL
                             self._walls.append((x, y))
 
+            self._enemies_spawn = []
             for _ in range(enemies):
                 x, y = 0, 0
                 while self.map[x][y] in [
@@ -56,6 +57,7 @@ class Map:
                         random.randrange(VITAL_SPACE, self.ver_tiles),
                     )
                 self._enemies_spawn.append((x, y))
+                logger.debug(f"Spawn enemy at ({x}, {y})")
                 # create a vital space for enemies:
                 for rx, ry in [(x, y) for x in [-1, 0, 1] for y in [-1, 0, 1]]:
                     if self.map[x + rx][y + ry] in [Tiles.WALL]:
