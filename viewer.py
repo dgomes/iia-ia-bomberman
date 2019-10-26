@@ -402,11 +402,11 @@ async def main_game():
         if "lives" in state and "level" in state:
             text = "lives: "
             draw_info(SCREEN, text, (300,1))
-            text = "           " + str(state["lives"])
+            text = f"           {state['lives']}"
             draw_info(SCREEN, text, (300,1),color=(255, 0, 0))
             text = "level: "
             draw_info(SCREEN, text, (450,1))
-            text = "           " + str(state["level"])
+            text = f"           {state['level']}"
             draw_info(SCREEN, text, (450,1),color=(255, 0, 0))
 
         if "bombs" in state:
