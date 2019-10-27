@@ -17,7 +17,7 @@ VITAL_SPACE = 3
 
 
 class Map:
-    def __init__(self, level=1, enemies=0, size=(VITAL_SPACE+10, VITAL_SPACE+10), mapa=None, enemies_spawn=[], empty=False):
+    def __init__(self, level=1, enemies=0, size=(VITAL_SPACE+10, VITAL_SPACE+10), mapa=None, enemies_spawn=None, empty=False):
 
         assert size[0] > VITAL_SPACE+9
         assert size[1] > VITAL_SPACE+9
@@ -27,7 +27,10 @@ class Map:
         self.hor_tiles = size[0]
         self.ver_tiles = size[1]
         self._walls = []
-        self._enemies_spawn = enemies_spawn
+        if enemies_spawn:
+            self._enemies_spawn = enemies_spawn
+        else:
+            self._enemies_spawn = []
 
         if not mapa:
             logger.info("Generating a MAP")
@@ -45,7 +48,6 @@ class Map:
                             self.map[x][y] = Tiles.WALL
                             self._walls.append((x, y))
 
-            self._enemies_spawn = []
             for _ in range(enemies):
                 x, y = 0, 0
                 while self.map[x][y] in [
