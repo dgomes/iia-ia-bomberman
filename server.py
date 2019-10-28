@@ -6,6 +6,7 @@ import logging
 import websockets
 import pickle
 import os.path
+import random
 from collections import namedtuple
 from game import Game
 
@@ -143,6 +144,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", help="TCP port", type=int, default=8000)
     parser.add_argument("--level", help="start on level", type=int, default=1)
     parser.add_argument("--lives", help="Number of lives", type=int, default=3)
+    parser.add_argument("--seed", help="Seed number", type=int, default=0)
     parser.add_argument(
         "--timeout", help="Timeout after this amount of steps", type=int, default=3000
     )
@@ -152,6 +154,9 @@ if __name__ == "__main__":
         default="http://bomberman-aulas.ws.atnog.av.it.pt/game",
     )
     args = parser.parse_args()
+
+    if args.seed > 0:
+        random.seed(args.seed)
 
     g = Game_server(args.level, args.lives, args.timeout, args.grading_server)
 

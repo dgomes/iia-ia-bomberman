@@ -160,6 +160,9 @@ class Game:
         self._running = True
         self._score = INITIAL_SCORE
         self._bomberman = Bomberman(self.map.bomberman_spawn, self._initial_lives)
+        for powerup in range(1, self.initial_level):
+            self._bomberman.powerup(LEVEL_POWERUPS[powerup])
+        logger.debug("Bomberman Powerups: %s", self._bomberman.powers)
 
         self.next_level(self.initial_level)
 
