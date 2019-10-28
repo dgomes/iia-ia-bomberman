@@ -245,6 +245,7 @@ class Game:
         if self._bomberman.lives > 0:
             logger.debug("RESPAWN")
             self._bomberman.respawn()
+            self._bombs = []
         else:
             self.stop()
 
@@ -279,7 +280,8 @@ class Game:
                         self._score += enemy.points()
                         self._enemies.remove(enemy)
 
-                self._bombs.remove(bomb)
+                if bomb in self._bombs:
+                    self._bombs.remove(bomb)
 
     async def next_frame(self):
         await asyncio.sleep(1.0 / GAME_SPEED)
