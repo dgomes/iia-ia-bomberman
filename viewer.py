@@ -384,7 +384,7 @@ async def main_game():
     state = {"score": 0, "player": "player1", "bomberman": (1, 1)}
 
     while True:
-#        SCREEN.blit(BACKGROUND, (0, 0))
+        SCREEN.blit(BACKGROUND, (0, 0))
         pygame.event.pump()
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             asyncio.get_event_loop().stop()
@@ -416,6 +416,8 @@ async def main_game():
             if len(bombs_group.sprites()) < len(state["bombs"]):
                 pos, timeout, radius = state["bombs"][-1]
                 bombs_group.add(Bomb(pos=pos, timeout=timeout, radius=radius))
+            if len(bombs_group.sprites()) > len(state["bombs"]):
+                bombs_group.empty()
             bombs_group.update(state["bombs"])
 
         if "enemies" in state:
