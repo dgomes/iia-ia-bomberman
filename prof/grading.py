@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 import os
+from sqlalchemy import and_, func
 
 app = Flask(__name__, static_url_path='')
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -45,7 +46,7 @@ def add_game():
     db.session.add(new_game)
     db.session.commit()
 
-    return game_schema.jsonify(new_game) 
+    return game_schema.jsonify(new_game)
 
 @app.route("/static/<path:path>")
 def send_static(path):
@@ -55,7 +56,12 @@ def send_static(path):
 @app.route("/highscores", methods=["GET"])
 def get_game():
     page = request.args.get('page', 1, type=int)
-    all_games = db.session.query(Game).order_by(Game.score.desc()).paginate(page, 20, False)
+
+    q = db.session.query(Game.id, Game.timestamp, Game.player, Game.level, func.max(Game.score).label('score')).group_by(Game.player).order_by(Game.score.desc(), Game.timestamp)
+    print(q.statement)
+
+    all_games = q.paginate(page, 20, False)
+#    all_games = db.session.query(Game).order_by(Game.score.desc()).paginate(page, 20, False)
     result = games_schema.dump(all_games.items)
     return jsonify(result)
 
@@ -63,7 +69,7 @@ def get_game():
 # endpoint to show player games
 @app.route("/highscores/<player>", methods=["GET"])
 def game_detail(player):
-    game = db.session.query(Game).filter(Game.player == player).order_by(Game.score.desc()).limit(10)
+    game = db.session.query(Game).filter(and_(Game.player == player, Game.score > 0)).order_by(Game.score.desc()).limit(10)
     result = games_schema.dump(game)
     return jsonify(result)
 
