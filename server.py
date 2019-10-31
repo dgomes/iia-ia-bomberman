@@ -41,7 +41,7 @@ class Game_server:
     def save_highscores(self):
         # update highscores
         logger.debug("Save highscores")
-        logger.info("FINAL SCORE <%s>: %s", self.current_player.name, self.game.score)
+        logger.info("FINAL SCORE <%s>: %s with %s steps", self.current_player.name, self.game.score, self.game.total_steps)
 
         self._highscores.append((self.current_player.name, self.game.score))
         self._highscores = sorted(self._highscores, key=lambda s: -1 * s[1])[
@@ -129,6 +129,7 @@ class Game_server:
                 try:
                     if self.grading:
                         game_rec["score"] = self.game.score
+                        game_rec["total_steps"] = self.game.total_steps
                         game_rec["level"] = self.game.map.level
                         requests.post(self.grading, json=game_rec)
                 except:
@@ -162,6 +163,7 @@ if __name__ == "__main__":
 
     game_loop_task = asyncio.ensure_future(g.mainloop())
 
+    logger.info(f"Listenning @ {args.bind}:{args.port}")
     websocket_server = websockets.serve(g.incomming_handler, args.bind, args.port)
 
     loop = asyncio.get_event_loop()

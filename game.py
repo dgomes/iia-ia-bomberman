@@ -131,6 +131,8 @@ class Game:
         self._running = False
         self._timeout = timeout
         self._score = 0
+        self._step = 0
+        self._total_steps = 0
         self._state = {}
         self._initial_lives = lives
         self.map = Map(size=size, empty=True)
@@ -154,6 +156,10 @@ class Game:
     def score(self):
         return self._score
 
+    @property
+    def total_steps(self):
+        return self._total_steps
+
     def start(self, player_name):
         logger.debug("Reset world")
         self._player_name = player_name
@@ -168,6 +174,7 @@ class Game:
 
     def stop(self):
         logger.info("GAME OVER")
+        self._total_steps += self._step
         self._running = False
 
     def next_level(self, level):
@@ -179,6 +186,7 @@ class Game:
         logger.info("NEXT LEVEL")
         self.map = Map(level=level, size=self.map.size, enemies=len(LEVEL_ENEMIES[level]))
         self._bomberman.respawn()
+        self._total_steps += self._step
         self._step = 0
         self._bombs = []
         self._powerups = []
