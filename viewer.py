@@ -384,7 +384,7 @@ async def main_game():
     state = {"score": 0, "player": "player1", "bomberman": (1, 1)}
 
     while True:
-#        SCREEN.blit(BACKGROUND, (0, 0))
+        SCREEN.blit(BACKGROUND, (0, 0))
         pygame.event.pump()
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             asyncio.get_event_loop().stop()
@@ -401,13 +401,26 @@ async def main_game():
 
         if "lives" in state and "level" in state:
             text = "lives: "
-            draw_info(SCREEN, text, (300,1))
-            text = "           " + str(state["lives"])
-            draw_info(SCREEN, text, (300,1),color=(255, 0, 0))
+            draw_info(SCREEN, text, (SCREEN.get_width()/4,1))
+            myfont = pygame.font.Font(None, int(22 / SCALE))        
+            textsurface = myfont.render(text, True, (0,0,0), None)
+            text = f"{state['lives']}"
+            draw_info(SCREEN, text, (SCREEN.get_width()/4 + textsurface.get_width() ,1),color=(255, 0, 0))
             text = "level: "
-            draw_info(SCREEN, text, (450,1))
-            text = "           " + str(state["level"])
-            draw_info(SCREEN, text, (450,1),color=(255, 0, 0))
+            draw_info(SCREEN, text, (2*SCREEN.get_width()/4 ,1))
+
+            myfont = pygame.font.Font(None, int(22 / SCALE))        
+            textsurface = myfont.render(text, True, (0,0,0), None)
+            text = f"{state['level']}"
+            draw_info(SCREEN, text, (2*SCREEN.get_width()/4 + textsurface.get_width(),1),color=(255, 0, 0))
+        
+        if "step" in state:
+            text = "steps: " 
+            draw_info(SCREEN, text, (3*SCREEN.get_width()/4,1))
+            myfont = pygame.font.Font(None, int(22 / SCALE))        
+            textsurface = myfont.render(text, True, (0,0,0), None)
+            text = f"{state['step']}"
+            draw_info(SCREEN, text, (3*SCREEN.get_width()/4 + textsurface.get_width() ,1),color=(255, 0, 0))               
 
         if "bombs" in state:
             for bomb in bombs_group:
@@ -416,6 +429,8 @@ async def main_game():
             if len(bombs_group.sprites()) < len(state["bombs"]):
                 pos, timeout, radius = state["bombs"][-1]
                 bombs_group.add(Bomb(pos=pos, timeout=timeout, radius=radius))
+            if len(bombs_group.sprites()) > len(state["bombs"]):
+                bombs_group.empty()
             bombs_group.update(state["bombs"])
 
         if "enemies" in state:
