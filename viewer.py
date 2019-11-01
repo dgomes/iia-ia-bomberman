@@ -401,6 +401,7 @@ async def main_game():
 
         if "lives" in state and "level" in state:
             text = "lives: "
+<<<<<<< HEAD
             draw_info(SCREEN, text, (SCREEN.get_width()/4,1))
             myfont = pygame.font.Font(None, int(22 / SCALE))        
             textsurface = myfont.render(text, True, (0,0,0), None)
@@ -421,6 +422,15 @@ async def main_game():
             textsurface = myfont.render(text, True, (0,0,0), None)
             text = f"{state['step']}"
             draw_info(SCREEN, text, (3*SCREEN.get_width()/4 + textsurface.get_width() ,1),color=(255, 0, 0))               
+=======
+            draw_info(SCREEN, text, (300,1))
+            text = f"           {state['lives']}"
+            draw_info(SCREEN, text, (300,1),color=(255, 0, 0))
+            text = "level: "
+            draw_info(SCREEN, text, (450,1))
+            text = f"           {state['level']}"
+            draw_info(SCREEN, text, (450,1),color=(255, 0, 0))
+>>>>>>> 60cb994895306609e6a7195073adb48a0d3b68cf
 
         if "bombs" in state:
             for bomb in bombs_group:
