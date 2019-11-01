@@ -164,6 +164,7 @@ class Game:
         logger.debug("Reset world")
         self._player_name = player_name
         self._running = True
+        self._total_steps = 0
         self._score = INITIAL_SCORE
         self._bomberman = Bomberman(self.map.bomberman_spawn, self._initial_lives)
         for powerup in range(1, self.initial_level):
