@@ -217,6 +217,7 @@ class Game:
                     self._lastkeypress == "B"
                     and len(self._bombs)
                     < self._bomberman.powers.count(Powerups.Bombs) + 1
+                    and not self.map.is_blocked(self._bomberman.pos)
                 ):
                     self._bombs.append(
                         Bomb(
