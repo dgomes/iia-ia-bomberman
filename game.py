@@ -6,9 +6,9 @@ import os
 
 import requests
 
-from characters import Balloom, Bomberman, Character, Doll, Minvo, Oneal, Kondoria, Ovapi, Pass
+from characters import Balloom, Bomberman, Character, Doll, Minvo, Oneal, Kondoria, Ovapi, Pass, distance
 from consts import Powerups
-from mapa import Map, Tiles
+from mapa import Map, Tiles, VITAL_SPACE
 
 logger = logging.getLogger("Game")
 logger.setLevel(logging.DEBUG)
@@ -258,6 +258,10 @@ class Game:
         if self._bomberman.lives > 0:
             logger.debug("RESPAWN")
             self._bomberman.respawn()
+            for e in self._enemies:
+                if distance(self._bomberman.pos, e.pos) < VITAL_SPACE:
+                    logger.debug("respawn camper")
+                    e.respawn()
             self._bombs = []
         else:
             self.stop()
