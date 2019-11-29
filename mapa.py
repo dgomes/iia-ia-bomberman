@@ -37,9 +37,11 @@ class Map:
             self.map = [[Tiles.PASSAGE] * self.ver_tiles for i in range(self.hor_tiles)]
             for x in range(self.hor_tiles):
                 for y in range(self.ver_tiles):
-                    if x in [0, self.hor_tiles - 1] or y in [0, self.ver_tiles - 1]:
+                    if x in [1, self.hor_tiles - 1] or y in [1, self.ver_tiles - 1]:
                         self.map[x][y] = Tiles.STONE
-                    elif x % 2 == 0 and y % 2 == 0:
+                    elif x % 2 == 1 and y % 2 == 1:
+                        self.map[x][y] = Tiles.STONE
+                    elif x == 0 or x == self.hor_tiles-2 or y == 0 or y == self.ver_tiles-2:
                         self.map[x][y] = Tiles.STONE
                     elif (
                         x >= VITAL_SPACE and y >= VITAL_SPACE and not empty
@@ -79,7 +81,7 @@ class Map:
                 for y in range(self.ver_tiles):
                     if self.map[x][y] == Tiles.WALL and (x, y) != (1, 1):
                         self._walls.append((x, y))
-        self._bomberman_spawn = (1, 1)  # Always true
+        self._bomberman_spawn = (self.hor_tiles-3, self.ver_tiles-3)  # Always true
 
     def __getstate__(self):
         return self.map
